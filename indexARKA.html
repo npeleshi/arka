@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="sq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Arka e Udhëtimit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow column like a travel wallet — pool balance up top, four tabs, forms above their ledgers */
+:root{
+  --bg:#EEF3F6; --surface:#FFFFFF; --ink:#13232F; --muted:#5B6F7D; --line:#D3DEE6;
+  --accent:#0E6A8C; --accent-ink:#FFFFFF; --accent-soft:#DCEEF5;
+  --pos:#1D7A4C; --pos-soft:#DDF2E6; --neg:#B4372B; --neg-soft:#FBE3E0; --warn:#8A5A00; --warn-soft:#FFF1CC;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+  --f-num:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D171E; --surface:#15232D; --ink:#E4EDF2; --muted:#93A8B6; --line:#2A3C48;
+  --accent:#4FB3D9; --accent-ink:#06202B; --accent-soft:#163847;
+  --pos:#5FCB92; --pos-soft:#15352A; --neg:#F08A7E; --neg-soft:#3D1D1A; --warn:#F2C056; --warn-soft:#3A2E10;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D171E; --surface:#15232D; --ink:#E4EDF2; --muted:#93A8B6; --line:#2A3C48;
+  --accent:#4FB3D9; --accent-ink:#06202B; --accent-soft:#163847;
+  --pos:#5FCB92; --pos-soft:#15352A; --neg:#F08A7E; --neg-soft:#3D1D1A; --warn:#F2C056; --warn-soft:#3A2E10;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45}
+.wrap{max-width:640px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+h2{font-size:1.25rem;font-weight:800}
+h3{font-size:1rem;font-weight:600}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:.875rem}
+
+/* header */
+.top{display:flex;flex-direction:column;gap:4px}
+.trip{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.pool{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.pool h1{font-size:clamp(2rem,9vw,3rem);font-weight:800;font-family:var(--f-num);letter-spacing:-.02em}
+.pool .lbl{color:var(--muted)}
+.stats{display:flex;gap:16px;flex-wrap:wrap;font-size:.875rem;color:var(--muted)}
+.stats b{color:var(--ink)}
+
+.banner{border-radius:10px;padding:10px 12px;font-size:.9rem;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.banner.sample{background:var(--accent-soft)}
+.banner.warn{background:var(--warn-soft);color:var(--warn)}
+
+/* tabs */
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.tabs button{border:0;background:transparent;color:var(--muted);font:700 .85rem var(--f-body);padding:10px 4px;border-radius:9px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+
+.panel{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+
+/* forms */
+label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:700;color:var(--muted);letter-spacing:.02em;min-width:0}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+textarea{font-family:var(--f-num);font-size:.8rem;min-height:120px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+@media (max-width:420px){.row,.row3{grid-template-columns:1fr}}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 .9rem var(--f-body);padding:10px 14px;border-radius:9px;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--neg);border-color:var(--neg)}
+.btn.tiny{padding:5px 9px;font-size:.8rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.err{color:var(--neg);font-size:.875rem;margin:0}
+
+/* participants */
+.parts{display:flex;flex-direction:column;gap:6px}
+.part{display:grid;grid-template-columns:auto 1fr 84px;gap:10px;align-items:center;font-size:.95rem}
+.part input[type=checkbox]{width:20px;height:20px}
+.part input[type=number]{padding:6px 8px}
+.part .nm{min-width:0;overflow-wrap:anywhere}
+
+/* ledger */
+.ledger{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ledger li{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.ledger li:first-child{border-top:0}
+.ledger .main{min-width:0;overflow-wrap:anywhere}
+.ledger .amt{text-align:right;font-weight:700}
+.ledger .meta{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.chip.oop{background:var(--warn-soft);color:var(--warn)}
+.empty{color:var(--muted);font-size:.9rem;margin:0}
+
+/* members */
+.members{display:flex;flex-direction:column;gap:8px}
+.member{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+
+/* settlement */
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+tfoot td{font-weight:700;border-bottom:0}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-weight:700;font-family:var(--f-num);font-size:.85rem}
+.pill.pos{background:var(--pos-soft);color:var(--pos)}
+.pill.neg{background:var(--neg-soft);color:var(--neg)}
+.pill.zero{background:var(--bg);color:var(--muted)}
+.transfers{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.transfers li{display:grid;grid-template-columns:1fr auto 1fr auto;gap:8px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--bg)}
+.transfers .from,.transfers .to{font-weight:700;min-width:0;overflow-wrap:anywhere}
+.transfers .arrow{color:var(--muted)}
+@media (max-width:420px){.transfers li{grid-template-columns:1fr auto}.transfers .arrow{display:none}.transfers .to::before{content:"→ ";color:var(--muted)}}
+.how{font-size:.9rem;color:var(--muted);margin:0;max-width:65ch}
+.how p{margin:0 0 6px}
+
+.scan{display:flex;flex-direction:column;gap:10px;padding-bottom:12px;border-bottom:1px dashed var(--line)}
+.scanbtn{flex-direction:row;align-items:center;gap:8px;font-size:.9rem;color:var(--accent);border-color:var(--accent);letter-spacing:0}
+.scanbtn::before{content:"";width:18px;height:14px;border:2px solid currentColor;border-radius:3px;box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 6px currentColor}
+.scanbtn[aria-disabled="true"]{opacity:.45;pointer-events:none}
+.scanres{display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:start}
+.scanres img{width:64px;height:84px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--bg)}
+.scanmsg{font-size:.9rem;min-width:0;overflow-wrap:anywhere}
+.scanmsg.ok{color:var(--pos)}
+.scanmsg.bad{color:var(--neg)}
+.scanmsg .note{display:block;color:var(--warn);margin-top:4px}
+.filled{background:var(--accent-soft)!important;border-color:var(--accent)!important}
+.confirm{background:var(--neg-soft);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;font-size:.9rem}
+@media (prefers-reduced-motion:no-preference){.tabs button{transition:background .15s,color .15s}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="trip" id="tripName"></div>
+    <div class="pool"><h1 id="poolBal"></h1><span class="lbl">në arkë tani</span></div>
+    <div class="stats" id="stats"></div>
+  </header>
+  <div id="banners"></div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="kontribute" id="tab-kontribute">Kontribute</button>
+    <button role="tab" data-tab="shpenzime" id="tab-shpenzime">Shpenzime</button>
+    <button role="tab" data-tab="llogaria" id="tab-llogaria">Llogaria</button>
+    <button role="tab" data-tab="grupi" id="tab-grupi">Grupi</button>
+  </nav>
+
+  <!-- KONTRIBUTE -->
+  <section class="panel" id="p-kontribute" hidden>
+    <form class="card" id="cForm" novalidate>
+      <h2 id="cTitle">Shto kontribut në arkë</h2>
+      <div class="row">
+        <label>Anëtari<select id="cMember"></select></label>
+        <label>Shuma<input id="cAmount" inputmode="decimal" placeholder="0,00" autocomplete="off"></label>
+      </div>
+      <div class="row">
+        <label>Data dhe ora<input id="cDate" type="datetime-local"></label>
+        <label>Shënim (opsional)<input id="cNote" placeholder="p.sh. para në dorë"></label>
+      </div>
+      <p class="err" id="cErr" hidden></p>
+      <div class="btns"><button class="btn primary" type="submit" id="cSubmit">Shto kontributin</button><button class="btn" type="button" id="cCancel" hidden>Anulo</button></div>
+    </form>
+    <div class="card"><h3>Të gjitha kontributet</h3><ul class="ledger" id="cList"></ul></div>
+  </section>
+
+  <!-- SHPENZIME -->
+  <section class="panel" id="p-shpenzime" hidden>
+    <form class="card" id="eForm" novalidate>
+      <h2 id="eTitle">Shto shpenzim</h2>
+      <div class="scan" id="scanBox" hidden>
+        <div class="btns">
+          <label class="btn scanbtn" for="scanFile" id="scanLabel">Fotografo faturën</label>
+          <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
+          <button class="btn" type="button" id="scanStop" hidden>Ndalo</button>
+        </div>
+        <div class="scanres" id="scanRes" hidden>
+          <img id="scanImg" alt="Fatura e fotografuar">
+          <div class="scanmsg" id="scanMsg" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="row3">
+        <label>Përshkrimi<input id="eDesc" placeholder="p.sh. Darkë në Berat"></label>
+        <label>Shuma<input id="eAmount" inputmode="decimal" placeholder="0,00" autocomplete="off"></label>
+      </div>
+      <div class="row">
+        <label>Kategoria<select id="eCat"></select></label>
+        <label>Data<input id="eDate" type="date"></label>
+      </div>
+      <label>Kush e pagoi<select id="ePaid"></select></label>
+      <div class="parts">
+        <div class="part muted small"><span></span><span>Kush e ndan</span><span>Pesha</span></div>
+        <div id="eParts" class="parts"></div>
+        <p class="muted small" style="margin:0">Pesha 1 = pjesë e barabartë. P.sh. kush rri 2 net nga 4, merr peshën 2 dhe të tjerët 4.</p>
+      </div>
+      <p class="err" id="eErr" hidden></p>
+      <div class="btns"><button class="btn primary" type="submit" id="eSubmit">Shto shpenzimin</button><button class="btn" type="button" id="eCancel" hidden>Anulo</button></div>
+    </form>
+    <div class="card"><h3>Të gjitha shpenzimet</h3><ul class="ledger" id="eList"></ul></div>
+  </section>
+
+  <!-- LLOGARIA -->
+  <section class="panel" id="p-llogaria" hidden>
+    <div class="card">
+      <h2>Bilanci i secilit</h2>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Anëtari</th><th>Kontribuoi</th><th>Pjesa</th><th>Bilanci</th></tr></thead>
+        <tbody id="sBody"></tbody><tfoot id="sFoot"></tfoot>
+      </table></div>
+      <p class="muted small" style="margin:0">Pozitiv: merr para mbrapsht. Negativ: duhet të paguajë akoma.</p>
+    </div>
+    <div class="card">
+      <h2>Kush i paguan kujt</h2>
+      <ul class="transfers" id="sTransfers"></ul>
+    </div>
+    <div class="card how">
+      <h3 style="color:var(--ink)">Si llogaritet</h3>
+      <p><b>Kontribuoi</b> = paratë e futura në arkë + shpenzimet që dikush pagoi nga xhepi.</p>
+      <p><b>Pjesa</b> = çdo shpenzim ndahet sipas peshave mes atyre që e ndajnë. Centi që mbetet nga rrumbullakimi i ngarkohet atij që ka kontribuar më shumë.</p>
+      <p><b>Bilanci</b> = kontribuoi − pjesa. Shuma e bilanceve është gjithmonë sa paratë që kanë mbetur në arkë.</p>
+      <p>Arka u kthen fillimisht paratë e mbetura atyre me bilanc pozitiv. Pjesa tjetër shlyhet me sa më pak transferta mes anëtarëve.</p>
+    </div>
+  </section>
+
+  <!-- GRUPI -->
+  <section class="panel" id="p-grupi" hidden>
+    <div class="card">
+      <h2>Udhëtimi</h2>
+      <div class="row3">
+        <label>Emri i udhëtimit<input id="gName"></label>
+        <label>Monedha<input id="gCur" maxlength="4"></label>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Anëtarët</h2>
+      <div class="members" id="mList"></div>
+      <form class="member" id="mForm" novalidate>
+        <input id="mName" placeholder="Emri i anëtarit të ri" autocomplete="off">
+        <button class="btn primary" type="submit">Shto</button>
+      </form>
+      <p class="err" id="mErr" hidden></p>
+    </div>
+    <div class="card">
+      <h2>Kopje rezervë</h2>
+      <p class="muted small" style="margin:0">Të dhënat ruhen vetëm në këtë shfletues. Kopjo tekstin për ta ruajtur ose për ta hapur në një telefon tjetër.</p>
+      <div class="btns"><button class="btn" type="button" id="xShow">Shfaq të dhënat</button><button class="btn" type="button" id="xImportShow">Ngarko të dhëna</button></div>
+      <div id="xBox" hidden class="parts">
+        <textarea id="xText" aria-label="Të dhënat e udhëtimit"></textarea>
+        <div class="btns" id="xExportBtns"><button class="btn" type="button" id="xCopy">Kopjo</button></div>
+        <div class="btns" id="xImportBtns"><button class="btn primary" type="button" id="xLoad">Ngarko këtë</button><label class="btn" style="flex-direction:row;font-size:.9rem;color:var(--ink)">Nga skedari<input type="file" id="xFile" accept=".json,application/json,text/plain" hidden></label></div>
+        <p class="err" id="xErr" hidden></p>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Udhëtim i ri</h2>
+      <div class="btns"><button class="btn danger" type="button" id="resetBtn">Fshi gjithçka dhe fillo nga e para</button></div>
+      <div class="confirm" id="resetConfirm" hidden>
+        <span>Të gjitha kontributet, shpenzimet dhe anëtarët do të fshihen. Nuk kthehet mbrapsht.</span>
+        <div class="btns"><button class="btn danger" type="button" id="resetYes">Po, fshiji</button><button class="btn" type="button" id="resetNo">Anulo</button></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ===== LOGIC (pure, amounts in cents) ===== */
+function computeSettlement(state){
+  const ids = state.members.map(m=>m.id);
+  const contributed = Object.fromEntries(ids.map(id=>[id,0]));
+  const fair = Object.fromEntries(ids.map(id=>[id,0]));
+  let poolIn=0, poolOut=0;
+  for(const c of state.contributions){ if(c.memberId in contributed){contributed[c.memberId]+=c.amount; poolIn+=c.amount;} }
+  for(const e of state.expenses){
+    if(e.paidBy==='pool') poolOut+=e.amount;
+    else if(e.paidBy in contributed) contributed[e.paidBy]+=e.amount;
+  }
+  for(const e of state.expenses){
+    const parts = Object.entries(e.shares||{}).filter(([id,w])=>w>0 && id in fair);
+    const sumW = parts.reduce((s,[,w])=>s+w,0);
+    if(!parts.length || sumW<=0) continue;
+    let assigned=0;
+    const share={};
+    for(const [id,w] of parts){ share[id]=Math.floor(e.amount*w/sumW); assigned+=share[id]; }
+    let rem = e.amount-assigned;
+    const order = parts.map(([id])=>id).sort((a,b)=>contributed[b]-contributed[a] || ids.indexOf(a)-ids.indexOf(b));
+    for(let i=0; rem>0; i=(i+1)%order.length){ share[order[i]]++; rem--; }
+    for(const id in share) fair[id]+=share[id];
+  }
+  const poolCash = poolIn-poolOut;
+  const rows = ids.map(id=>({id, contributed:contributed[id], fair:fair[id], balance:contributed[id]-fair[id]}));
+  // Settlement: pool is a party holding poolCash
+  const debtors=[], creditors=[];
+  if(poolCash>0) debtors.push({id:'pool',amt:poolCash,pool:true});
+  if(poolCash<0) creditors.push({id:'pool',amt:-poolCash,pool:true});
+  for(const r of rows){ if(r.balance<0) debtors.push({id:r.id,amt:-r.balance}); else if(r.balance>0) creditors.push({id:r.id,amt:r.balance}); }
+  debtors.sort((a,b)=>(b.pool?1:0)-(a.pool?1:0) || b.amt-a.amt);
+  creditors.sort((a,b)=>b.amt-a.amt);
+  const transfers=[];
+  let i=0,j=0;
+  while(i<debtors.length && j<creditors.length){
+    const x=Math.min(debtors[i].amt,creditors[j].amt);
+    if(x>0) transfers.push({from:debtors[i].id,to:creditors[j].id,amount:x});
+    debtors[i].amt-=x; creditors[j].amt-=x;
+    if(debtors[i].amt===0) i++;
+    if(creditors[j].amt===0) j++;
+  }
+  return {rows, poolCash, poolIn, poolOut, transfers};
+}
+/* ===== END LOGIC ===== */
+
+const KEY='arka-udhetimit-v1';
+const CATS=['Akomodim','Ushqim','Transport','Karburant','Aktivitete','Pazar','Tjetër'];
+const uid=()=>Math.random().toString(36).slice(2,9);
+const $=id=>document.getElementById(id);
+
+function sampleState(){
+  const A=uid(),B=uid(),C=uid();
+  return {sample:true,name:'Shembull: Fundjavë në Berat',currency:'€',
+    members:[{id:A,name:'Arben'},{id:B,name:'Blerta'},{id:C,name:'Klodi'}],
+    contributions:[
+      {id:uid(),memberId:A,amount:10000,date:'2026-10-02T09:00',note:'Në nisje'},
+      {id:uid(),memberId:B,amount:5000,date:'2026-10-02T09:05',note:''},
+      {id:uid(),memberId:C,amount:3000,date:'2026-10-03T18:30',note:'Shtoi më vonë'}],
+    expenses:[
+      {id:uid(),desc:'Darkë te kalaja',amount:9000,category:'Ushqim',date:'2026-10-02',paidBy:'pool',shares:{[A]:1,[B]:1,[C]:1}},
+      {id:uid(),desc:'Muzeu Onufri',amount:4000,category:'Aktivitete',date:'2026-10-03',paidBy:'pool',shares:{[A]:1,[B]:1}}]};
+}
+function emptyState(){return {sample:false,name:'Udhëtimi ynë',currency:'€',members:[],contributions:[],expenses:[]};}
+
+let state;
+try{ const raw=localStorage.getItem(KEY); state=raw?JSON.parse(raw):null; }catch(e){ state=null; }
+if(!state||!Array.isArray(state.members)) state=sampleState();
+let tab='kontribute';
+try{ tab=localStorage.getItem(KEY+'-tab')||tab; }catch(e){}
+if(location.hash && ['kontribute','shpenzime','llogaria','grupi'].includes(location.hash.slice(1))) tab=location.hash.slice(1);
+let editC=null, editE=null;
+
+function save(){ try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){} }
+function money(c){
+  const neg=c<0; c=Math.abs(c);
+  const s=(Math.floor(c/100)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+','+String(c%100).padStart(2,'0');
+  return (neg?'−':'')+s+' '+(state.currency||'');
+}
+function parseMoney(str){
+  str=String(str||'').trim().replace(/\s/g,'');
+  if(!str) return NaN;
+  if(str.includes(',')&&str.includes('.')) str=str.lastIndexOf(',')>str.lastIndexOf('.')?str.replace(/\./g,'').replace(',','.'):str.replace(/,/g,'');
+  else str=str.replace(',','.');
+  if(!/^\d+(\.\d{0,2})?$/.test(str)) return NaN;
+  return Math.round(parseFloat(str)*100);
+}
+const nameOf=id=>id==='pool'?'Arka':(state.members.find(m=>m.id===id)||{name:'(i fshirë)'}).name;
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+function fmtDate(d){ if(!d) return ''; const [dt,tm]=d.split('T'); const [y,m,da]=dt.split('-'); return `${da}.${m}.${y}`+(tm?` ${tm.slice(0,5)}`:''); }
+function nowLocal(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); }
+function showErr(el,msg){ el.textContent=msg; el.hidden=!msg; }
+
+function touch(){ if(state.sample){ state.sample=false; if(state.name.startsWith('Shembull: ')) state.name=state.name.slice(10);} save(); render(); }
+
+/* ===== RENDER ===== */
+function render(){
+  const s=computeSettlement(state);
+  $('tripName').textContent=state.name||'Udhëtimi';
+  $('poolBal').textContent=money(s.poolCash);
+  $('stats').innerHTML=`<span>Futur: <b class="num">${money(s.poolIn)}</b></span><span>Shpenzuar nga arka: <b class="num">${money(s.poolOut)}</b></span><span>Anëtarë: <b>${state.members.length}</b></span>`;
+  let b='';
+  if(state.sample) b+=`<div class="banner sample"><span>Këto janë të dhëna shembull. Ndrysho çfarëdo, ose fillo bosh.</span><button class="btn tiny" type="button" id="startEmpty">Fillo udhëtim të ri</button></div>`;
+  if(s.poolCash<0) b+=`<div class="banner warn">Arka ka shpenzuar ${money(-s.poolCash)} më shumë se sa është futur. Ndoshta mungon një kontribut.</div>`;
+  $('banners').innerHTML=b;
+  if(state.sample) $('startEmpty').onclick=()=>{ state=emptyState(); save(); tab='grupi'; render(); };
+
+  document.querySelectorAll('.tabs button').forEach(bt=>bt.setAttribute('aria-selected',bt.dataset.tab===tab));
+  ['kontribute','shpenzime','llogaria','grupi'].forEach(t=>$('p-'+t).hidden=t!==tab);
+
+  const opts=state.members.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('');
+  const keepC=$('cMember').value; $('cMember').innerHTML=opts; if(keepC) $('cMember').value=keepC;
+  const keepP=$('ePaid').value; $('ePaid').innerHTML=`<option value="pool">Arka e përbashkët</option>`+state.members.map(m=>`<option value="${m.id}">${esc(m.name)} (nga xhepi)</option>`).join(''); if(keepP) $('ePaid').value=keepP;
+  if(!$('eCat').options.length) $('eCat').innerHTML=CATS.map(c=>`<option>${c}</option>`).join('');
+  if(!$('cDate').value) $('cDate').value=nowLocal();
+  if(!$('eDate').value) $('eDate').value=nowLocal().slice(0,10);
+  if(!editE) renderParts();
+
+  const cs=[...state.contributions].sort((a,b)=>b.date.localeCompare(a.date));
+  $('cList').innerHTML=cs.length?cs.map(c=>`<li><span class="main"><b>${esc(nameOf(c.memberId))}</b>${c.note?` <span class="muted">· ${esc(c.note)}</span>`:''}</span><span class="amt num">${money(c.amount)}</span><span class="meta"><span class="muted small">${fmtDate(c.date)}</span><span class="btns"><button class="btn tiny" data-ec="${c.id}">Ndrysho</button><button class="btn tiny danger" data-dc="${c.id}">Fshi</button></span></span></li>`).join(''):`<p class="empty">Ende asnjë kontribut. Shto të parin më sipër.</p>`;
+
+  const es=[...state.expenses].sort((a,b)=>b.date.localeCompare(a.date));
+  $('eList').innerHTML=es.length?es.map(e=>{
+    const p=Object.entries(e.shares).filter(([,w])=>w>0);
+    const allEq=p.length===state.members.length && p.every(([,w])=>w===p[0][1]);
+    const who=allEq?'të gjithë':p.map(([id,w])=>esc(nameOf(id))+(p.some(([,x])=>x!==p[0][1])?` ×${w}`:'')).join(', ');
+    return `<li><span class="main"><b>${esc(e.desc||e.category)}</b><br><span class="small muted">${who}</span></span><span class="amt num">${money(e.amount)}</span><span class="meta"><span class="small muted"><span class="chip ${e.paidBy==='pool'?'':'oop'}">${e.paidBy==='pool'?'Arka':esc(nameOf(e.paidBy))}</span> ${esc(e.category)} · ${fmtDate(e.date)}</span><span class="btns"><button class="btn tiny" data-ee="${e.id}">Ndrysho</button><button class="btn tiny danger" data-de="${e.id}">Fshi</button></span></span></li>`;}).join(''):`<p class="empty">Ende asnjë shpenzim.</p>`;
+
+  const tot={c:0,f:0};
+  $('sBody').innerHTML=s.rows.map(r=>{tot.c+=r.contributed;tot.f+=r.fair;
+    const cls=r.balance>0?'pos':r.balance<0?'neg':'zero';
+    return `<tr><td>${esc(nameOf(r.id))}</td><td class="num">${money(r.contributed)}</td><td class="num">${money(r.fair)}</td><td><span class="pill ${cls}">${r.balance>0?'+':''}${money(r.balance)}</span></td></tr>`;}).join('')||`<tr><td colspan="4" class="muted">Shto anëtarë te skeda Grupi.</td></tr>`;
+  $('sFoot').innerHTML=`<tr><td>Gjithsej</td><td class="num">${money(tot.c)}</td><td class="num">${money(tot.f)}</td><td class="num">${money(tot.c-tot.f)}</td></tr>`;
+  $('sTransfers').innerHTML=s.transfers.length?s.transfers.map(t=>`<li><span class="from">${esc(nameOf(t.from))}</span><span class="arrow">→</span><span class="to">${esc(nameOf(t.to))}</span><span class="num" style="font-weight:700">${money(t.amount)}</span></li>`).join(''):`<p class="empty">Të gjithë janë në rregull. S'ka asgjë për të shlyer.</p>`;
+
+  $('gName').value=state.name; $('gCur').value=state.currency;
+  const used=new Set([...state.contributions.map(c=>c.memberId),...state.expenses.map(e=>e.paidBy),...state.expenses.flatMap(e=>Object.keys(e.shares).filter(k=>e.shares[k]>0))]);
+  $('mList').innerHTML=state.members.map(m=>`<div class="member"><input value="${esc(m.name)}" data-rn="${m.id}" id="rn-${m.id}" aria-label="Emri"><button class="btn tiny danger" data-dm="${m.id}" ${used.has(m.id)?'disabled title="Ka veprime të regjistruara"':''}>Hiq</button></div>`).join('')||`<p class="empty">Shto anëtarin e parë.</p>`;
+}
+
+function renderParts(shares){
+  const cur=shares||{};
+  $('eParts').innerHTML=state.members.map(m=>{
+    const w=shares?(cur[m.id]||0):1;
+    return `<div class="part"><input type="checkbox" id="pc-${m.id}" ${w>0?'checked':''}><label for="pc-${m.id}" class="nm" style="font-size:.95rem;color:var(--ink);font-weight:400;letter-spacing:0">${esc(m.name)}</label><input type="number" min="0" step="0.5" id="pw-${m.id}" value="${w>0?w:1}" aria-label="Pesha për ${esc(m.name)}"></div>`;}).join('')||`<p class="empty">Shto anëtarë te skeda Grupi.</p>`;
+}
+
+/* ===== EVENTS ===== */
+document.querySelector('.tabs').onclick=e=>{const t=e.target.closest('button'); if(!t) return; tab=t.dataset.tab; try{localStorage.setItem(KEY+'-tab',tab);}catch(_){} render();};
+
+$('cForm').onsubmit=e=>{e.preventDefault();
+  const amt=parseMoney($('cAmount').value);
+  if(!state.members.length) return showErr($('cErr'),'Shto fillimisht anëtarë te skeda Grupi.');
+  if(!(amt>0)) return showErr($('cErr'),'Shkruaj një shumë më të madhe se zero, p.sh. 25 ose 25,50.');
+  showErr($('cErr'),'');
+  const rec={memberId:$('cMember').value,amount:amt,date:$('cDate').value||nowLocal(),note:$('cNote').value.trim()};
+  if(editC){ Object.assign(state.contributions.find(c=>c.id===editC),rec); } else state.contributions.push({id:uid(),...rec});
+  resetCForm(); touch();
+};
+function resetCForm(){ editC=null; $('cAmount').value=''; $('cNote').value=''; $('cDate').value=nowLocal(); $('cTitle').textContent='Shto kontribut në arkë'; $('cSubmit').textContent='Shto kontributin'; $('cCancel').hidden=true; }
+$('cCancel').onclick=()=>{resetCForm(); render();};
+$('cList').onclick=e=>{
+  const d=e.target.dataset;
+  if(d.dc){ state.contributions=state.contributions.filter(c=>c.id!==d.dc); touch(); }
+  if(d.ec){ const c=state.contributions.find(x=>x.id===d.ec); editC=c.id; $('cMember').value=c.memberId; $('cAmount').value=(c.amount/100).toFixed(2).replace('.',','); $('cDate').value=c.date; $('cNote').value=c.note||''; $('cTitle').textContent='Ndrysho kontributin'; $('cSubmit').textContent='Ruaj ndryshimet'; $('cCancel').hidden=false; $('cForm').scrollIntoView({behavior:'smooth'}); }
+};
+
+$('eForm').onsubmit=e=>{e.preventDefault();
+  const amt=parseMoney($('eAmount').value);
+  if(!state.members.length) return showErr($('eErr'),'Shto fillimisht anëtarë te skeda Grupi.');
+  if(!(amt>0)) return showErr($('eErr'),'Shkruaj një shumë më të madhe se zero.');
+  const shares={};
+  for(const m of state.members){ if($('pc-'+m.id)?.checked){ const w=parseFloat($('pw-'+m.id).value); if(w>0) shares[m.id]=w; } }
+  if(!Object.keys(shares).length) return showErr($('eErr'),'Zgjidh të paktën një person që e ndan këtë shpenzim, me peshë mbi zero.');
+  showErr($('eErr'),'');
+  const rec={desc:$('eDesc').value.trim(),amount:amt,category:$('eCat').value,date:$('eDate').value||nowLocal().slice(0,10),paidBy:$('ePaid').value,shares};
+  if(editE) Object.assign(state.expenses.find(x=>x.id===editE),rec); else state.expenses.push({id:uid(),...rec});
+  resetEForm(); touch();
+};
+function resetEForm(){ editE=null; if(typeof clearScan==='function') clearScan(); $('eAmount').value=''; $('eDesc').value=''; $('ePaid').value='pool'; $('eTitle').textContent='Shto shpenzim'; $('eSubmit').textContent='Shto shpenzimin'; $('eCancel').hidden=true; renderParts(); }
+$('eCancel').onclick=()=>{resetEForm(); render();};
+$('eList').onclick=e=>{
+  const d=e.target.dataset;
+  if(d.de){ state.expenses=state.expenses.filter(x=>x.id!==d.de); touch(); }
+  if(d.ee){ const x=state.expenses.find(y=>y.id===d.ee); editE=x.id; $('eDesc').value=x.desc; $('eAmount').value=(x.amount/100).toFixed(2).replace('.',','); $('eCat').value=x.category; $('eDate').value=x.date; $('ePaid').value=x.paidBy; renderParts(x.shares); $('eTitle').textContent='Ndrysho shpenzimin'; $('eSubmit').textContent='Ruaj ndryshimet'; $('eCancel').hidden=false; $('eForm').scrollIntoView({behavior:'smooth'}); }
+};
+
+$('mForm').onsubmit=e=>{e.preventDefault();
+  const n=$('mName').value.trim();
+  if(!n) return showErr($('mErr'),'Shkruaj një emër.');
+  if(state.members.some(m=>m.name.toLowerCase()===n.toLowerCase())) return showErr($('mErr'),'Ky emër ekziston. Shto mbiemrin ose një iniciale.');
+  showErr($('mErr'),''); state.members.push({id:uid(),name:n}); $('mName').value=''; if(!editE) renderParts(); touch();
+};
+$('mList').onclick=e=>{ const id=e.target.dataset.dm; if(id){ state.members=state.members.filter(m=>m.id!==id); touch(); } };
+$('mList').onchange=e=>{ const id=e.target.dataset.rn; if(id){ const v=e.target.value.trim(); if(v){ state.members.find(m=>m.id===id).name=v; touch(); } else render(); } };
+$('gName').onchange=()=>{ state.name=$('gName').value.trim()||'Udhëtimi'; touch(); };
+$('gCur').onchange=()=>{ state.currency=$('gCur').value.trim(); touch(); };
+
+$('xShow').onclick=()=>{ $('xBox').hidden=false; $('xExportBtns').hidden=false; $('xImportBtns').hidden=true; $('xText').value=JSON.stringify(state,null,1); showErr($('xErr'),''); };
+$('xImportShow').onclick=()=>{ $('xBox').hidden=false; $('xExportBtns').hidden=true; $('xImportBtns').hidden=false; $('xText').value=''; $('xText').placeholder='Ngjit këtu tekstin e kopjuar më parë'; showErr($('xErr'),''); };
+$('xCopy').onclick=()=>{ const t=$('xText'); const ok=()=>{$('xCopy').textContent='U kopjua';setTimeout(()=>$('xCopy').textContent='Kopjo',1500);};
+  try{ navigator.clipboard.writeText(t.value).then(ok,()=>{t.select();$('xCopy').textContent='Zgjidhet, kopjoje me dorë';}); }catch(_){ t.select(); } };
+function importText(txt){
+  try{ const d=JSON.parse(txt); if(!Array.isArray(d.members)||!Array.isArray(d.contributions)||!Array.isArray(d.expenses)) throw 0;
+    state=d; state.sample=false; save(); $('xBox').hidden=true; tab='llogaria'; render(); }
+  catch(_){ showErr($('xErr'),'Ky tekst nuk duket si kopje e këtij aplikacioni. Kopjoje të plotë, nga { deri te }.'); }
+}
+$('xLoad').onclick=()=>importText($('xText').value);
+$('xFile').onchange=e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>importText(r.result); r.readAsText(f); };
+
+/* ===== RECEIPT SCAN ===== */
+let sampleFn=null, scanCtl=null, scanUrl=null;
+function clearFilled(){ document.querySelectorAll('.filled').forEach(el=>el.classList.remove('filled')); }
+function clearScan(){ scanCtl?.abort(); clearFilled(); $('scanRes').hidden=true; if(scanUrl){URL.revokeObjectURL(scanUrl);scanUrl=null;} }
+function setScanMsg(html,cls){ const m=$('scanMsg'); m.className='scanmsg'+(cls?' '+cls:''); m.innerHTML=html; }
+function setBusy(b){ $('scanLabel').setAttribute('aria-disabled',b); $('scanStop').hidden=!b; $('scanFile').disabled=b; }
+const SCAN_ERR={
+  rate_limited:'Shumë kërkesa njëra pas tjetrës. Prit pak dhe provo përsëri.',
+  image_rejected:'Kjo foto nuk mund të lexohet. Provo një foto tjetër (JPG ose PNG).',
+  refused:'Fatura nuk u lexua dot. Shkruaje shumën me dorë.',
+  empty_completion:'Nuk u gjet asgjë në foto. Provo një foto më të qartë.',
+  invalid_json:'Leximi doli i paqartë. Provo përsëri ose shkruaje shumën me dorë.',
+  session_expired:'Duhet të hysh përsëri në llogari për të lexuar fatura.',
+};
+const HIDE_CODES=['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed','images_unavailable'];
+
+(async()=>{
+  try{
+    const s=await window.claude?.use?.('sample'); if(!s) return;
+    const lim=await s.limits().catch(()=>null); if(!lim?.images) return;
+    sampleFn=s; $('scanBox').hidden=false;
+  }catch(_){}
+})();
+
+$('scanStop').onclick=()=>scanCtl?.abort();
+$('scanFile').onchange=async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f||!sampleFn) return;
+  clearScan();
+  scanUrl=URL.createObjectURL(f); $('scanImg').src=scanUrl; $('scanRes').hidden=false;
+  setScanMsg('Duke lexuar faturën…'); setBusy(true);
+  scanCtl=new AbortController();
+  const prompt=`The image is a photo of a shop/restaurant/hotel/fuel receipt, possibly in Albanian (words like "TOTAL", "Totali", "Shuma", "Për t'u paguar", "LEK", "ALL", "TVSH" = VAT) or another language.
+Find the FINAL amount paid (grand total including VAT and service; not a subtotal, VAT line, cash tendered, or change).
+Reply with only this JSON object:
+{"total": number or null, "currency": "ISO code like ALL, EUR, USD" or null, "merchant": "short shop name" or null, "date": "YYYY-MM-DD" or null, "category": one of ${JSON.stringify(CATS)} or null, "confidence": "high" | "low"}
+Use a dot as the decimal separator in "total" (e.g. 1250.5). If the image is not a receipt or the total is unreadable, set "total" to null.
+Example: {"total": 2450, "currency": "ALL", "merchant": "Restorant Mangalemi", "date": "2026-10-03", "category": "Ushqim", "confidence": "high"}`;
+  try{
+    const r=await sampleFn.json(prompt,{images:f,signal:scanCtl.signal});
+    const total=Number(r?.total);
+    if(!(total>0)){ setScanMsg('Nuk u gjet totali në këtë foto. Provo një foto më të qartë ose shkruaje me dorë.','bad'); return; }
+    const cents=Math.round(total*100);
+    $('eAmount').value=(cents/100).toFixed(2).replace('.',','); $('eAmount').classList.add('filled');
+    if(r.merchant && !$('eDesc').value.trim()){ $('eDesc').value=String(r.merchant).slice(0,80); $('eDesc').classList.add('filled'); }
+    if(r.date && /^\d{4}-\d{2}-\d{2}$/.test(r.date)){ $('eDate').value=r.date; $('eDate').classList.add('filled'); }
+    if(r.category && CATS.includes(r.category)){ $('eCat').value=r.category; $('eCat').classList.add('filled'); }
+    let notes='';
+    const cur=String(r.currency||'').toUpperCase(), trip=String(state.currency||'').trim().toUpperCase();
+    const same={'€':'EUR','EUR':'EUR','LEK':'ALL','L':'ALL','ALL':'ALL','$':'USD','USD':'USD'};
+    if(cur && trip && (same[trip]||trip)!==(same[cur]||cur)) notes+=`<span class="note">Fatura është në ${esc(cur)}, por udhëtimi në ${esc(state.currency)}. Ktheje shumën në ${esc(state.currency)} para se ta shtosh.</span>`;
+    if(r.confidence==='low') notes+=`<span class="note">Fatura nuk lexohej mirë. Kontrolloje shumën me kujdes.</span>`;
+    setScanMsg(`Totali: <b class="num">${esc((cents/100).toFixed(2).replace('.',','))}${cur?' '+esc(cur):''}</b>. Kontrollo fushat e theksuara, pastaj shtyp <b>Shto shpenzimin</b>.${notes}`,'ok');
+  }catch(err){
+    if(err?.code==='cancelled'){ $('scanRes').hidden=true; return; }
+    if(HIDE_CODES.includes(err?.code)){ $('scanBox').hidden=true; showErr($('eErr'), err.code==='not_granted'?'Leximi i faturave nuk u lejua. Shkruaje shumën me dorë.':''); return; }
+    setScanMsg(SCAN_ERR[err?.code]||'Lidhja u ndërpre. Provo përsëri.','bad');
+  }finally{ setBusy(false); }
+};
+['eAmount','eDesc','eDate','eCat'].forEach(id=>$(id).addEventListener('input',()=>$(id).classList.remove('filled')));
+
+$('resetBtn').onclick=()=>{ $('resetConfirm').hidden=false; };
+$('resetNo').onclick=()=>{ $('resetConfirm').hidden=true; };
+$('resetYes').onclick=()=>{ state=emptyState(); save(); $('resetConfirm').hidden=true; resetCForm(); resetEForm(); render(); };
+
+render();
+</script>
+
+</body>
+</html>
