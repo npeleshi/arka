@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* Layout: one narrow column like a travel wallet — pool balance up top, four tabs, forms above their ledgers */
+/* Layout: one narrow column like a travel wallet — home (trips) or a trip: pool balance up top, four tabs, forms above their ledgers */
 :root{
   --bg:#EEF3F6; --surface:#FFFFFF; --ink:#13232F; --muted:#5B6F7D; --line:#D3DEE6;
   --accent:#0E6A8C; --accent-ink:#FFFFFF; --accent-soft:#DCEEF5;
@@ -33,25 +33,35 @@
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45}
 .wrap{max-width:640px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:16px}
+.view{display:flex;flex-direction:column;gap:16px}
 h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
 h2{font-size:1.25rem;font-weight:800}
 h3{font-size:1rem;font-weight:600}
+p{margin:0}
 .num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
 .muted{color:var(--muted)}
 .small{font-size:.875rem}
 
 /* header */
 .top{display:flex;flex-direction:column;gap:4px}
-.trip{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.toprow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.trip{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;min-width:0;overflow-wrap:anywhere}
+.back{border:0;background:none;color:var(--accent);font:700 .85rem var(--f-body);padding:4px 0;cursor:pointer;white-space:nowrap}
 .pool{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .pool h1{font-size:clamp(2rem,9vw,3rem);font-weight:800;font-family:var(--f-num);letter-spacing:-.02em}
 .pool .lbl{color:var(--muted)}
 .stats{display:flex;gap:16px;flex-wrap:wrap;font-size:.875rem;color:var(--muted)}
 .stats b{color:var(--ink)}
+.hero h1{font-size:clamp(1.9rem,8vw,2.6rem);font-weight:800;letter-spacing:-.01em}
+.hero p{color:var(--muted);max-width:60ch;margin-top:6px}
 
 .banner{border-radius:10px;padding:10px 12px;font-size:.9rem;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.banner.sample{background:var(--accent-soft)}
+.banner.info{background:var(--accent-soft)}
 .banner.warn{background:var(--warn-soft);color:var(--warn)}
+.banner.bad{background:var(--neg-soft);color:var(--neg)}
+.banner.sync{background:var(--surface);border:1px solid var(--line)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;background:var(--muted)}
+.dot.ok{background:var(--pos)}.dot.busy{background:var(--warn)}.dot.bad{background:var(--neg)}
 
 /* tabs */
 .tabs{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
@@ -64,25 +74,45 @@ h3{font-size:1rem;font-weight:600}
 /* forms */
 label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:700;color:var(--muted);letter-spacing:.02em;min-width:0}
 input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
-textarea{font-family:var(--f-num);font-size:.8rem;min-height:120px}
-input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+textarea{min-height:110px;resize:vertical}
+textarea.code{font-family:var(--f-num);font-size:.8rem;min-height:120px}
+input:disabled{opacity:.8}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .row3{display:grid;grid-template-columns:2fr 1fr;gap:10px}
 @media (max-width:420px){.row,.row3{grid-template-columns:1fr}}
+.check{flex-direction:row;align-items:center;gap:8px;font-size:.9rem;font-weight:400;color:var(--ink);letter-spacing:0}
+.check input{width:20px;height:20px}
 .btns{display:flex;gap:8px;flex-wrap:wrap}
-.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 .9rem var(--f-body);padding:10px 14px;border-radius:9px;cursor:pointer}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 .9rem var(--f-body);padding:10px 14px;border-radius:9px;cursor:pointer;text-align:center}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn.danger{color:var(--neg);border-color:var(--neg)}
 .btn.tiny{padding:5px 9px;font-size:.8rem}
+.btn.wide{width:100%}
 .btn:disabled{opacity:.45;cursor:not-allowed}
-.err{color:var(--neg);font-size:.875rem;margin:0}
+.err{color:var(--neg);font-size:.875rem}
+.hint{font-size:.8rem;color:var(--muted);font-weight:400;letter-spacing:0}
+
+/* links to share */
+.linkbox{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:10px;background:var(--bg)}
+.linkbox.admin{background:var(--warn-soft)}
+.linkbox .lt{font-size:.8rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.linkbox.admin .lt{color:var(--warn)}
+.linkbox code{font-family:var(--f-num);font-size:.8rem;overflow-wrap:anywhere;user-select:all;-webkit-user-select:all}
+
+/* trips list */
+.trips{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.trips li{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.trips li:first-child{border-top:0}
+.trips a{color:var(--ink);font-weight:700;text-decoration:none;min-width:0;overflow-wrap:anywhere}
+.trips a:hover{text-decoration:underline}
 
 /* participants */
 .parts{display:flex;flex-direction:column;gap:6px}
 .part{display:grid;grid-template-columns:auto 1fr 84px;gap:10px;align-items:center;font-size:.95rem}
 .part input[type=checkbox]{width:20px;height:20px}
 .part input[type=number]{padding:6px 8px}
-.part .nm{min-width:0;overflow-wrap:anywhere}
+.part .nm{min-width:0;overflow-wrap:anywhere;font-size:.95rem;color:var(--ink);font-weight:400;letter-spacing:0}
 
 /* ledger */
 .ledger{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
@@ -93,11 +123,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .ledger .meta{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
 .chip{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
 .chip.oop{background:var(--warn-soft);color:var(--warn)}
-.empty{color:var(--muted);font-size:.9rem;margin:0}
+.chip.adm{background:var(--warn-soft);color:var(--warn)}
+.empty{color:var(--muted);font-size:.9rem}
 
 /* members */
 .members{display:flex;flex-direction:column;gap:8px}
 .member{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.mname{padding:4px 0;font-size:.95rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
 /* settlement */
 .tablewrap{overflow-x:auto}
@@ -115,156 +147,270 @@ tfoot td{font-weight:700;border-bottom:0}
 .transfers .from,.transfers .to{font-weight:700;min-width:0;overflow-wrap:anywhere}
 .transfers .arrow{color:var(--muted)}
 @media (max-width:420px){.transfers li{grid-template-columns:1fr auto}.transfers .arrow{display:none}.transfers .to::before{content:"→ ";color:var(--muted)}}
-.how{font-size:.9rem;color:var(--muted);margin:0;max-width:65ch}
+.how{font-size:.9rem;color:var(--muted);max-width:65ch}
 .how p{margin:0 0 6px}
 
-.scan{display:flex;flex-direction:column;gap:10px;padding-bottom:12px;border-bottom:1px dashed var(--line)}
-.scanbtn{flex-direction:row;align-items:center;gap:8px;font-size:.9rem;color:var(--accent);border-color:var(--accent);letter-spacing:0}
-.scanbtn::before{content:"";width:18px;height:14px;border:2px solid currentColor;border-radius:3px;box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 6px currentColor}
-.scanbtn[aria-disabled="true"]{opacity:.45;pointer-events:none}
-.scanres{display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:start}
-.scanres img{width:64px;height:84px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--bg)}
-.scanmsg{font-size:.9rem;min-width:0;overflow-wrap:anywhere}
-.scanmsg.ok{color:var(--pos)}
-.scanmsg.bad{color:var(--neg)}
-.scanmsg .note{display:block;color:var(--warn);margin-top:4px}
-.filled{background:var(--accent-soft)!important;border-color:var(--accent)!important}
 .confirm{background:var(--neg-soft);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;font-size:.9rem}
+.ro .admin-only{display:none!important}
+.lockcard{max-width:420px;align-self:center;width:100%}
 @media (prefers-reduced-motion:no-preference){.tabs button{transition:background .15s,color .15s}}
 </style>
 
 <div class="wrap">
-  <header class="top">
-    <div class="trip" id="tripName"></div>
-    <div class="pool"><h1 id="poolBal"></h1><span class="lbl">në arkë tani</span></div>
-    <div class="stats" id="stats"></div>
-  </header>
-  <div id="banners"></div>
 
-  <nav class="tabs" role="tablist">
-    <button role="tab" data-tab="kontribute" id="tab-kontribute">Kontribute</button>
-    <button role="tab" data-tab="shpenzime" id="tab-shpenzime">Shpenzime</button>
-    <button role="tab" data-tab="llogaria" id="tab-llogaria">Llogaria</button>
-    <button role="tab" data-tab="grupi" id="tab-grupi">Grupi</button>
-  </nav>
+  <!-- ================= HOME ================= -->
+  <section class="view" id="v-home" hidden>
+    <header class="hero">
+      <h1>Arka e Udhëtimit</h1>
+      <p>Buxheti i përbashkët i grupit: kush futi sa, sa u shpenzua, dhe në fund kush merr e kush paguan.</p>
+    </header>
+    <div id="cfgWarn" class="banner bad" hidden>Aplikacioni nuk është lidhur ende me databazën. Vendos adresën dhe çelësin e Supabase në skedar.</div>
 
-  <!-- KONTRIBUTE -->
-  <section class="panel" id="p-kontribute" hidden>
-    <form class="card" id="cForm" novalidate>
-      <h2 id="cTitle">Shto kontribut në arkë</h2>
-      <div class="row">
-        <label>Anëtari<select id="cMember"></select></label>
-        <label>Shuma<input id="cAmount" inputmode="decimal" placeholder="0,00" autocomplete="off"></label>
-      </div>
-      <div class="row">
-        <label>Data dhe ora<input id="cDate" type="datetime-local"></label>
-        <label>Shënim (opsional)<input id="cNote" placeholder="p.sh. para në dorë"></label>
-      </div>
-      <p class="err" id="cErr" hidden></p>
-      <div class="btns"><button class="btn primary" type="submit" id="cSubmit">Shto kontributin</button><button class="btn" type="button" id="cCancel" hidden>Anulo</button></div>
-    </form>
-    <div class="card"><h3>Të gjitha kontributet</h3><ul class="ledger" id="cList"></ul></div>
-  </section>
+    <div class="card" id="myTripsCard" hidden>
+      <h2>Udhëtimet në këtë telefon</h2>
+      <ul class="trips" id="myTrips"></ul>
+    </div>
 
-  <!-- SHPENZIME -->
-  <section class="panel" id="p-shpenzime" hidden>
-    <form class="card" id="eForm" novalidate>
-      <h2 id="eTitle">Shto shpenzim</h2>
-      <div class="scan" id="scanBox" hidden>
-        <div class="btns">
-          <label class="btn scanbtn" for="scanFile" id="scanLabel">Fotografo faturën</label>
-          <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
-          <button class="btn" type="button" id="scanStop" hidden>Ndalo</button>
-        </div>
-        <div class="scanres" id="scanRes" hidden>
-          <img id="scanImg" alt="Fatura e fotografuar">
-          <div class="scanmsg" id="scanMsg" role="status" aria-live="polite"></div>
-        </div>
-      </div>
+    <form class="card" id="newForm" novalidate>
+      <h2>Krijo udhëtim të ri</h2>
       <div class="row3">
-        <label>Përshkrimi<input id="eDesc" placeholder="p.sh. Darkë në Berat"></label>
-        <label>Shuma<input id="eAmount" inputmode="decimal" placeholder="0,00" autocomplete="off"></label>
+        <label>Emri i udhëtimit<input id="nName" placeholder="p.sh. Fundjavë në Berat" autocomplete="off"></label>
+        <label>Monedha<input id="nCur" value="€" maxlength="4"></label>
       </div>
+      <label>Anëtarët, një emër për rresht
+        <textarea id="nMembers" placeholder="Arben&#10;Blerta&#10;Klodi"></textarea>
+      </label>
+      <label>Administratori
+        <select id="nAdmin"><option value="">Shkruaj fillimisht anëtarët</option></select>
+        <span class="hint">Vetëm administratori mund të shtojë kontribute dhe shpenzime. Mund të jesh ti ose dikush tjetër.</span>
+      </label>
       <div class="row">
-        <label>Kategoria<select id="eCat"></select></label>
-        <label>Data<input id="eDate" type="date"></label>
+        <label>Fjalëkalimi i grupit<input id="nPw" type="password" autocomplete="new-password"></label>
+        <label>Përsërite fjalëkalimin<input id="nPw2" type="password" autocomplete="new-password"></label>
       </div>
-      <label>Kush e pagoi<select id="ePaid"></select></label>
-      <div class="parts">
-        <div class="part muted small"><span></span><span>Kush e ndan</span><span>Pesha</span></div>
-        <div id="eParts" class="parts"></div>
-        <p class="muted small" style="margin:0">Pesha 1 = pjesë e barabartë. P.sh. kush rri 2 net nga 4, merr peshën 2 dhe të tjerët 4.</p>
-      </div>
-      <p class="err" id="eErr" hidden></p>
-      <div class="btns"><button class="btn primary" type="submit" id="eSubmit">Shto shpenzimin</button><button class="btn" type="button" id="eCancel" hidden>Anulo</button></div>
+      <p class="hint">Të dhënat enkriptohen me këtë fjalëkalim. Pa të, askush nuk i lexon, as ne. Nëse harrohet, udhëtimi nuk hapet më.</p>
+      <p class="err" id="nErr" hidden></p>
+      <button class="btn primary wide" type="submit" id="nGo">Krijo udhëtimin</button>
     </form>
-    <div class="card"><h3>Të gjitha shpenzimet</h3><ul class="ledger" id="eList"></ul></div>
+
+    <form class="card" id="openForm" novalidate>
+      <h2>Hap një udhëtim</h2>
+      <label>Lidhja që të dërguan<input id="oLink" placeholder="https://…#t=…" autocomplete="off"></label>
+      <p class="err" id="oErr" hidden></p>
+      <div class="btns"><button class="btn" type="submit">Hape</button></div>
+    </form>
   </section>
 
-  <!-- LLOGARIA -->
-  <section class="panel" id="p-llogaria" hidden>
-    <div class="card">
-      <h2>Bilanci i secilit</h2>
-      <div class="tablewrap"><table>
-        <thead><tr><th>Anëtari</th><th>Kontribuoi</th><th>Pjesa</th><th>Bilanci</th></tr></thead>
-        <tbody id="sBody"></tbody><tfoot id="sFoot"></tfoot>
-      </table></div>
-      <p class="muted small" style="margin:0">Pozitiv: merr para mbrapsht. Negativ: duhet të paguajë akoma.</p>
-    </div>
-    <div class="card">
-      <h2>Kush i paguan kujt</h2>
-      <ul class="transfers" id="sTransfers"></ul>
-    </div>
-    <div class="card how">
-      <h3 style="color:var(--ink)">Si llogaritet</h3>
-      <p><b>Kontribuoi</b> = paratë e futura në arkë + shpenzimet që dikush pagoi nga xhepi.</p>
-      <p><b>Pjesa</b> = çdo shpenzim ndahet sipas peshave mes atyre që e ndajnë. Centi që mbetet nga rrumbullakimi i ngarkohet atij që ka kontribuar më shumë.</p>
-      <p><b>Bilanci</b> = kontribuoi − pjesa. Shuma e bilanceve është gjithmonë sa paratë që kanë mbetur në arkë.</p>
-      <p>Arka u kthen fillimisht paratë e mbetura atyre me bilanc pozitiv. Pjesa tjetër shlyhet me sa më pak transferta mes anëtarëve.</p>
-    </div>
+  <!-- ================= LOCK (password) ================= -->
+  <section class="view" id="v-lock" hidden>
+    <div class="toprow"><button class="back" type="button" data-home>← Udhëtimet</button></div>
+    <form class="card lockcard" id="lockForm" novalidate>
+      <h2 id="lockTitle">Udhëtim i mbrojtur</h2>
+      <p class="muted small" id="lockMsg">Shkruaj fjalëkalimin që të dha grupi.</p>
+      <div id="lockFields" class="view" style="gap:12px">
+        <label>Fjalëkalimi<input id="lPw" type="password" autocomplete="current-password"></label>
+        <label class="check"><input type="checkbox" id="lRemember" checked> Mbaje mend në këtë telefon</label>
+        <p class="err" id="lErr" hidden></p>
+        <button class="btn primary wide" type="submit" id="lGo">Hape</button>
+      </div>
+    </form>
   </section>
 
-  <!-- GRUPI -->
-  <section class="panel" id="p-grupi" hidden>
+  <!-- ================= CREATED (share links) ================= -->
+  <section class="view" id="v-created" hidden>
+    <header class="hero"><h1>Udhëtimi u krijua</h1><p>Dërgoji lidhjet personave të duhur.</p></header>
     <div class="card">
-      <h2>Udhëtimi</h2>
-      <div class="row3">
-        <label>Emri i udhëtimit<input id="gName"></label>
-        <label>Monedha<input id="gCur" maxlength="4"></label>
+      <div class="linkbox">
+        <span class="lt">Lidhja e grupit, për të gjithë</span>
+        <code id="cGroupLink"></code>
+        <div class="btns"><button class="btn tiny" type="button" data-copy="cGroupLink">Kopjo</button><button class="btn tiny" type="button" data-share="cGroupLink">Dërgo…</button></div>
+        <span class="small muted">Të gjithë e shohin arkën, vetëm për lexim. Fjalëkalimin jepjau veçmas, jo në të njëjtin mesazh.</span>
+      </div>
+      <div class="linkbox admin">
+        <span class="lt" id="cAdminTitle">Lidhja e administratorit</span>
+        <code id="cAdminLink"></code>
+        <div class="btns"><button class="btn tiny" type="button" data-copy="cAdminLink">Kopjo</button><button class="btn tiny" type="button" data-share="cAdminLink">Dërgo…</button></div>
+        <span class="small" id="cAdminNote"></span>
       </div>
     </div>
     <div class="card">
-      <h2>Anëtarët</h2>
-      <div class="members" id="mList"></div>
-      <form class="member" id="mForm" novalidate>
-        <input id="mName" placeholder="Emri i anëtarit të ri" autocomplete="off">
-        <button class="btn primary" type="submit">Shto</button>
+      <h3 id="cQ">Kush po e përdor këtë telefon?</h3>
+      <div class="btns" style="flex-direction:column">
+        <button class="btn primary" type="button" id="cAmAdmin"></button>
+        <button class="btn" type="button" id="cNotAdmin"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TRIP ================= -->
+  <section class="view" id="v-trip" hidden>
+    <header class="top">
+      <div class="toprow"><div class="trip" id="tripName"></div><button class="back" type="button" data-home>← Udhëtimet</button></div>
+      <div class="pool"><h1 id="poolBal"></h1><span class="lbl">në arkë tani</span></div>
+      <div class="stats" id="stats"></div>
+    </header>
+    <div id="banners" class="view" style="gap:8px"></div>
+
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="kontribute" id="tab-kontribute">Kontribute</button>
+      <button role="tab" data-tab="shpenzime" id="tab-shpenzime">Shpenzime</button>
+      <button role="tab" data-tab="llogaria" id="tab-llogaria">Llogaria</button>
+      <button role="tab" data-tab="grupi" id="tab-grupi">Grupi</button>
+    </nav>
+
+    <!-- KONTRIBUTE -->
+    <section class="panel" id="p-kontribute" hidden>
+      <form class="card admin-only" id="cForm" novalidate>
+        <h2 id="cTitle">Shto kontribut në arkë</h2>
+        <div class="row">
+          <label>Anëtari<select id="cMember"></select></label>
+          <label>Shuma<input id="cAmount" inputmode="decimal" placeholder="0,00" autocomplete="off"></label>
+        </div>
+        <div class="row">
+          <label>Data dhe ora<input id="cDate" type="datetime-local"></label>
+          <label>Shënim (opsional)<input id="cNote" placeholder="p.sh. para në dorë"></label>
+        </div>
+        <p class="err" id="cErr" hidden></p>
+        <div class="btns"><button class="btn primary" type="submit" id="cSubmit">Shto kontributin</button><button class="btn" type="button" id="cCancel" hidden>Anulo</button></div>
       </form>
-      <p class="err" id="mErr" hidden></p>
-    </div>
-    <div class="card">
-      <h2>Kopje rezervë</h2>
-      <p class="muted small" style="margin:0">Të dhënat ruhen vetëm në këtë shfletues. Kopjo tekstin për ta ruajtur ose për ta hapur në një telefon tjetër.</p>
-      <div class="btns"><button class="btn" type="button" id="xShow">Shfaq të dhënat</button><button class="btn" type="button" id="xImportShow">Ngarko të dhëna</button></div>
-      <div id="xBox" hidden class="parts">
-        <textarea id="xText" aria-label="Të dhënat e udhëtimit"></textarea>
-        <div class="btns" id="xExportBtns"><button class="btn" type="button" id="xCopy">Kopjo</button></div>
-        <div class="btns" id="xImportBtns"><button class="btn primary" type="button" id="xLoad">Ngarko këtë</button><label class="btn" style="flex-direction:row;font-size:.9rem;color:var(--ink)">Nga skedari<input type="file" id="xFile" accept=".json,application/json,text/plain" hidden></label></div>
-        <p class="err" id="xErr" hidden></p>
+      <div class="card"><h3>Të gjitha kontributet</h3><ul class="ledger" id="cList"></ul></div>
+    </section>
+
+    <!-- SHPENZIME -->
+    <section class="panel" id="p-shpenzime" hidden>
+      <form class="card admin-only" id="eForm" novalidate>
+        <h2 id="eTitle">Shto shpenzim</h2>
+        <div class="row3">
+          <label>Përshkrimi<input id="eDesc" placeholder="p.sh. Darkë në Berat"></label>
+          <label>Shuma<input id="eAmount" inputmode="decimal" placeholder="0,00" autocomplete="off"></label>
+        </div>
+        <div class="row">
+          <label>Kategoria<select id="eCat"></select></label>
+          <label>Data<input id="eDate" type="date"></label>
+        </div>
+        <label>Kush e pagoi<select id="ePaid"></select></label>
+        <div class="parts">
+          <div class="part muted small"><span></span><span>Kush e ndan</span><span>Pesha</span></div>
+          <div id="eParts" class="parts"></div>
+          <p class="hint">Pesha 1 = pjesë e barabartë. P.sh. kush rri 2 net nga 4, merr peshën 2 dhe të tjerët 4.</p>
+        </div>
+        <p class="err" id="eErr" hidden></p>
+        <div class="btns"><button class="btn primary" type="submit" id="eSubmit">Shto shpenzimin</button><button class="btn" type="button" id="eCancel" hidden>Anulo</button></div>
+      </form>
+      <div class="card"><h3>Të gjitha shpenzimet</h3><ul class="ledger" id="eList"></ul></div>
+    </section>
+
+    <!-- LLOGARIA -->
+    <section class="panel" id="p-llogaria" hidden>
+      <div class="card">
+        <h2>Bilanci i secilit</h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Anëtari</th><th>Kontribuoi</th><th>Pjesa</th><th>Bilanci</th></tr></thead>
+          <tbody id="sBody"></tbody><tfoot id="sFoot"></tfoot>
+        </table></div>
+        <p class="hint">Pozitiv: merr para mbrapsht. Negativ: duhet të paguajë akoma.</p>
       </div>
-    </div>
-    <div class="card">
-      <h2>Udhëtim i ri</h2>
-      <div class="btns"><button class="btn danger" type="button" id="resetBtn">Fshi gjithçka dhe fillo nga e para</button></div>
-      <div class="confirm" id="resetConfirm" hidden>
-        <span>Të gjitha kontributet, shpenzimet dhe anëtarët do të fshihen. Nuk kthehet mbrapsht.</span>
-        <div class="btns"><button class="btn danger" type="button" id="resetYes">Po, fshiji</button><button class="btn" type="button" id="resetNo">Anulo</button></div>
+      <div class="card">
+        <h2>Kush i paguan kujt</h2>
+        <ul class="transfers" id="sTransfers"></ul>
       </div>
-    </div>
+      <div class="card how">
+        <h3 style="color:var(--ink)">Si llogaritet</h3>
+        <p><b>Kontribuoi</b> = paratë e futura në arkë + shpenzimet që dikush pagoi nga xhepi.</p>
+        <p><b>Pjesa</b> = çdo shpenzim ndahet sipas peshave mes atyre që e ndajnë. Centi që mbetet nga rrumbullakimi i ngarkohet atij që ka kontribuar më shumë.</p>
+        <p><b>Bilanci</b> = kontribuoi − pjesa. Shuma e bilanceve është gjithmonë sa paratë që kanë mbetur në arkë.</p>
+        <p>Arka u kthen fillimisht paratë e mbetura atyre me bilanc pozitiv. Pjesa tjetër shlyhet me sa më pak transferta mes anëtarëve.</p>
+      </div>
+    </section>
+
+    <!-- GRUPI -->
+    <section class="panel" id="p-grupi" hidden>
+      <div class="card">
+        <h2>Ndaje me grupin</h2>
+        <div class="linkbox">
+          <span class="lt">Lidhja e grupit</span>
+          <code id="gGroupLink"></code>
+          <div class="btns"><button class="btn tiny" type="button" data-copy="gGroupLink">Kopjo</button><button class="btn tiny" type="button" data-share="gGroupLink">Dërgo…</button></div>
+          <span class="small muted">Hapet me fjalëkalimin e grupit, vetëm për lexim.</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Administratori</h2>
+        <p id="gAdminName"></p>
+        <div class="admin-only view" style="gap:12px">
+          <p class="small">Ky telefon ka të drejtat e administratorit. Ruaje lidhjen tënde të administratorit diku të sigurt, se pa të nuk mund të ndryshosh më nga një telefon tjetër.</p>
+          <div class="btns"><button class="btn" type="button" id="gShowMine">Shfaq lidhjen time të administratorit</button></div>
+          <div class="linkbox admin" id="gMineBox" hidden>
+            <span class="lt">Lidhja jote e administratorit, mos e ndaj</span>
+            <code id="gMineLink"></code>
+            <div class="btns"><button class="btn tiny" type="button" data-copy="gMineLink">Kopjo</button></div>
+          </div>
+          <label>Kalo administrimin te
+            <select id="gNewAdmin"></select>
+          </label>
+          <div class="btns"><button class="btn" type="button" id="gTransfer">Kalo administrimin</button></div>
+          <div class="confirm" id="gTransferConfirm" hidden>
+            <span id="gTransferText"></span>
+            <div class="btns"><button class="btn danger" type="button" id="gTransferYes">Po, kaloje</button><button class="btn" type="button" id="gTransferNo">Anulo</button></div>
+          </div>
+          <p class="err" id="gErr" hidden></p>
+        </div>
+        <div class="linkbox admin" id="gNewBox" hidden>
+          <span class="lt" id="gNewTitle"></span>
+          <code id="gNewLink"></code>
+          <div class="btns"><button class="btn tiny" type="button" data-copy="gNewLink">Kopjo</button><button class="btn tiny" type="button" data-share="gNewLink">Dërgo…</button></div>
+          <span class="small">Lidhja e vjetër nuk vlen më. Ky telefon tani e sheh arkën vetëm për lexim.</span>
+        </div>
+        <p class="small muted" id="gViewerNote">Je administrator? Hap në këtë telefon lidhjen e administratorit që të dërguan.</p>
+      </div>
+
+      <div class="card">
+        <h2>Udhëtimi</h2>
+        <div class="row3">
+          <label>Emri i udhëtimit<input id="gName"></label>
+          <label>Monedha<input id="gCur" maxlength="4"></label>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Anëtarët</h2>
+        <div class="members" id="mList"></div>
+        <form class="member admin-only" id="mForm" novalidate>
+          <input id="mName" placeholder="Emri i anëtarit të ri" autocomplete="off">
+          <button class="btn primary" type="submit">Shto</button>
+        </form>
+        <p class="err" id="mErr" hidden></p>
+      </div>
+      <div class="card">
+        <h2>Kopje rezervë</h2>
+        <p class="small muted">Kopjo të gjitha të dhënat e udhëtimit si tekst, për t'i ruajtur diku tjetër.</p>
+        <div class="btns"><button class="btn" type="button" id="xShow">Shfaq të dhënat</button><button class="btn admin-only" type="button" id="xImportShow">Ngarko të dhëna</button></div>
+        <div id="xBox" hidden class="parts">
+          <textarea class="code" id="xText" aria-label="Të dhënat e udhëtimit"></textarea>
+          <div class="btns" id="xExportBtns"><button class="btn" type="button" data-copy="xText">Kopjo</button></div>
+          <div class="btns" id="xImportBtns"><button class="btn primary" type="button" id="xLoad">Ngarko këtë</button></div>
+          <p class="err" id="xErr" hidden></p>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Ky telefon</h2>
+        <p class="small muted">Harro fjalëkalimin dhe hiqe udhëtimin nga lista e këtij telefoni. Të dhënat e grupit nuk preken.</p>
+        <div class="btns"><button class="btn danger" type="button" id="forgetBtn">Hiqe nga ky telefon</button></div>
+        <div class="confirm" id="forgetConfirm" hidden>
+          <span id="forgetText">Do të duhet ta hapësh përsëri me lidhjen dhe fjalëkalimin.</span>
+          <div class="btns"><button class="btn danger" type="button" id="forgetYes">Po, hiqe</button><button class="btn" type="button" id="forgetNo">Anulo</button></div>
+        </div>
+      </div>
+    </section>
   </section>
 </div>
 
 <script>
+/* ===== CONFIG: Supabase ===== */
+const SB_URL = 'https://puxzhddztnhubpzetwtg.supabase.co'.replace(/\/+$/,'');
+const SB_KEY = 'sb_publishable_MjxEdA4WZ1-mmRpyxGHvvQ_HVeUzn8y';
+const CONFIGURED = !SB_URL.includes('__') && !SB_KEY.includes('__');
+
 /* ===== LOGIC (pure, amounts in cents) ===== */
 function computeSettlement(state){
   const ids = state.members.map(m=>m.id);
@@ -280,8 +426,7 @@ function computeSettlement(state){
     const parts = Object.entries(e.shares||{}).filter(([id,w])=>w>0 && id in fair);
     const sumW = parts.reduce((s,[,w])=>s+w,0);
     if(!parts.length || sumW<=0) continue;
-    let assigned=0;
-    const share={};
+    let assigned=0; const share={};
     for(const [id,w] of parts){ share[id]=Math.floor(e.amount*w/sumW); assigned+=share[id]; }
     let rem = e.amount-assigned;
     const order = parts.map(([id])=>id).sort((a,b)=>contributed[b]-contributed[a] || ids.indexOf(a)-ids.indexOf(b));
@@ -290,15 +435,13 @@ function computeSettlement(state){
   }
   const poolCash = poolIn-poolOut;
   const rows = ids.map(id=>({id, contributed:contributed[id], fair:fair[id], balance:contributed[id]-fair[id]}));
-  // Settlement: pool is a party holding poolCash
   const debtors=[], creditors=[];
   if(poolCash>0) debtors.push({id:'pool',amt:poolCash,pool:true});
   if(poolCash<0) creditors.push({id:'pool',amt:-poolCash,pool:true});
   for(const r of rows){ if(r.balance<0) debtors.push({id:r.id,amt:-r.balance}); else if(r.balance>0) creditors.push({id:r.id,amt:r.balance}); }
   debtors.sort((a,b)=>(b.pool?1:0)-(a.pool?1:0) || b.amt-a.amt);
   creditors.sort((a,b)=>b.amt-a.amt);
-  const transfers=[];
-  let i=0,j=0;
+  const transfers=[]; let i=0,j=0;
   while(i<debtors.length && j<creditors.length){
     const x=Math.min(debtors[i].amt,creditors[j].amt);
     if(x>0) transfers.push({from:debtors[i].id,to:creditors[j].id,amount:x});
@@ -310,34 +453,232 @@ function computeSettlement(state){
 }
 /* ===== END LOGIC ===== */
 
-const KEY='arka-udhetimit-v1';
 const CATS=['Akomodim','Ushqim','Transport','Karburant','Aktivitete','Pazar','Tjetër'];
-const uid=()=>Math.random().toString(36).slice(2,9);
 const $=id=>document.getElementById(id);
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const ls={ get(k){try{return localStorage.getItem('arka2-'+k);}catch(e){return null;}}, set(k,v){try{localStorage.setItem('arka2-'+k,v);}catch(e){}}, del(k){try{localStorage.removeItem('arka2-'+k);}catch(e){}} };
+function showErr(el,msg){ el.textContent=msg||''; el.hidden=!msg; }
+const BASE=location.origin+location.pathname;
+const groupLink=id=>`${BASE}#t=${id}`;
+const adminLink=(id,code)=>`${BASE}#t=${id}&a=${code}`;
 
-function sampleState(){
-  const A=uid(),B=uid(),C=uid();
-  return {sample:true,name:'Shembull: Fundjavë në Berat',currency:'€',
-    members:[{id:A,name:'Arben'},{id:B,name:'Blerta'},{id:C,name:'Klodi'}],
-    contributions:[
-      {id:uid(),memberId:A,amount:10000,date:'2026-10-02T09:00',note:'Në nisje'},
-      {id:uid(),memberId:B,amount:5000,date:'2026-10-02T09:05',note:''},
-      {id:uid(),memberId:C,amount:3000,date:'2026-10-03T18:30',note:'Shtoi më vonë'}],
-    expenses:[
-      {id:uid(),desc:'Darkë te kalaja',amount:9000,category:'Ushqim',date:'2026-10-02',paidBy:'pool',shares:{[A]:1,[B]:1,[C]:1}},
-      {id:uid(),desc:'Muzeu Onufri',amount:4000,category:'Aktivitete',date:'2026-10-03',paidBy:'pool',shares:{[A]:1,[B]:1}}]};
+/* ===== CRYPTO (AES-GCM, key from password via PBKDF2) ===== */
+const enc=new TextEncoder(), dec=new TextDecoder();
+const toB64=buf=>{ const by=new Uint8Array(buf); let s=''; for(let i=0;i<by.length;i+=0x8000) s+=String.fromCharCode.apply(null,by.subarray(i,i+0x8000)); return btoa(s); };
+const fromB64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const randHex=n=>Array.from(crypto.getRandomValues(new Uint8Array(n)),b=>b.toString(16).padStart(2,'0')).join('');
+let keyInfo=null; // {key, salt(b64), pw}
+async function deriveKey(pw,saltB64){
+  if(keyInfo && keyInfo.salt===saltB64 && keyInfo.pw===pw) return keyInfo.key;
+  const base=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:fromB64(saltB64),iterations:250000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  keyInfo={key,salt:saltB64,pw}; return key;
 }
-function emptyState(){return {sample:false,name:'Udhëtimi ynë',currency:'€',members:[],contributions:[],expenses:[]};}
+async function sealState(obj){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},keyInfo.key,enc.encode(JSON.stringify(obj)));
+  return JSON.stringify({v:1,salt:keyInfo.salt,iv:toB64(iv),ct:toB64(ct)});
+}
+async function openState(payload,pw){
+  const p=JSON.parse(payload);
+  const key=await deriveKey(pw,p.salt);
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:fromB64(p.iv)},key,fromB64(p.ct));
+  return JSON.parse(dec.decode(pt));
+}
 
-let state;
-try{ const raw=localStorage.getItem(KEY); state=raw?JSON.parse(raw):null; }catch(e){ state=null; }
-if(!state||!Array.isArray(state.members)) state=sampleState();
-let tab='kontribute';
-try{ tab=localStorage.getItem(KEY+'-tab')||tab; }catch(e){}
-if(location.hash && ['kontribute','shpenzime','llogaria','grupi'].includes(location.hash.slice(1))) tab=location.hash.slice(1);
-let editC=null, editE=null;
+/* ===== SUPABASE ===== */
+async function rpc(fn,args){
+  const h={'Content-Type':'application/json',apikey:SB_KEY};
+  if(!SB_KEY.startsWith('sb_')) h.Authorization='Bearer '+SB_KEY;
+  let r;
+  try{ r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:h,body:JSON.stringify(args),cache:'no-store'}); }
+  catch(e){ throw {offline:true,msg:'Nuk ka lidhje me internetin.'}; }
+  const txt=await r.text(); let j=null; try{ j=txt?JSON.parse(txt):null; }catch(e){}
+  if(!r.ok) throw {status:r.status,msg:(j&&(j.message||j.msg))||txt||('Gabim '+r.status)};
+  return j;
+}
+const isNotAdmin=e=>/not_admin/.test(e&&e.msg||'');
 
-function save(){ try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){} }
+/* ===== DEVICE MEMORY ===== */
+function myTrips(){ try{ return JSON.parse(ls.get('trips')||'[]'); }catch(e){ return []; } }
+function rememberTrip(id,name){ const list=myTrips().filter(t=>t.id!==id); list.unshift({id,name,at:Date.now()}); ls.set('trips',JSON.stringify(list.slice(0,30))); }
+function forgetTrip(id){ ls.set('trips',JSON.stringify(myTrips().filter(t=>t.id!==id))); ['pw-','admin-','cache-','dirty-','tab-'].forEach(k=>ls.del(k+id)); }
+
+/* ===== APP STATE ===== */
+let view='home', tripId=null, state=null, payload=null, serverAt=null, adminCode=null, isAdmin=false;
+let tab='llogaria', editC=null, editE=null;
+let sync={s:'idle'}, viewInfo={loading:false,at:null,err:''}, notice='';
+let pending=null; // created-trip info awaiting "who are you"
+
+function show(v){ view=v; ['home','lock','created','trip'].forEach(x=>$('v-'+x).hidden=x!==v); window.scrollTo(0,0); }
+
+/* ===== ROUTING ===== */
+function parseHash(){ const h=new URLSearchParams(location.hash.replace(/^#/,'')); return {t:h.get('t'),a:h.get('a')}; }
+function route(){
+  const {t,a}=parseHash();
+  if(t && /^[0-9a-f]{6,64}$/i.test(t)){
+    if(a && /^[0-9a-f]{32,128}$/i.test(a)){ ls.set('admin-'+t,a); history.replaceState(null,'',BASE+'#t='+t); }
+    if(a || t!==tripId || view!=='trip') openTrip(t);
+  } else { tripId=null; state=null; renderHome(); show('home'); }
+}
+window.addEventListener('hashchange',route);
+document.querySelectorAll('[data-home]').forEach(b=>b.onclick=()=>{ location.hash=''; });
+
+/* ===== HOME ===== */
+function renderHome(){
+  $('cfgWarn').hidden=CONFIGURED;
+  const list=myTrips();
+  $('myTripsCard').hidden=!list.length;
+  $('myTrips').innerHTML=list.map(t=>`<li><a href="#t=${esc(t.id)}">${esc(t.name||'Udhëtim')}</a>${ls.get('admin-'+t.id)?'<span class="chip adm">Admin</span>':'<span class="chip">Lexim</span>'}</li>`).join('');
+  fillAdminSelect();
+}
+function memberLines(){ const seen=new Set(); return $('nMembers').value.split('\n').map(s=>s.trim()).filter(s=>s&&!seen.has(s.toLowerCase())&&seen.add(s.toLowerCase())); }
+function fillAdminSelect(){
+  const names=memberLines(), cur=$('nAdmin').value;
+  $('nAdmin').innerHTML=names.length?names.map(n=>`<option>${esc(n)}</option>`).join(''):'<option value="">Shkruaj fillimisht anëtarët</option>';
+  if(names.includes(cur)) $('nAdmin').value=cur;
+}
+$('nMembers').addEventListener('input',fillAdminSelect);
+
+$('newForm').onsubmit=async e=>{ e.preventDefault();
+  const name=$('nName').value.trim(), cur=$('nCur').value.trim()||'€', names=memberLines(), adminName=$('nAdmin').value, pw=$('nPw').value;
+  if(!CONFIGURED) return showErr($('nErr'),'Aplikacioni nuk është lidhur ende me databazën.');
+  if(!name) return showErr($('nErr'),'Shkruaj emrin e udhëtimit.');
+  if(!names.length) return showErr($('nErr'),'Shkruaj të paktën një anëtar.');
+  if(!adminName) return showErr($('nErr'),'Zgjidh administratorin.');
+  if(pw.length<6) return showErr($('nErr'),'Fjalëkalimi duhet të ketë të paktën 6 shkronja ose shifra.');
+  if(pw!==$('nPw2').value) return showErr($('nErr'),'Dy fjalëkalimet nuk janë njësoj.');
+  showErr($('nErr'),''); $('nGo').disabled=true; $('nGo').textContent='Duke krijuar…';
+  try{
+    const members=names.map(n=>({id:uid(),name:n}));
+    const st={name,currency:cur,members,contributions:[],expenses:[],adminMemberId:members.find(m=>m.name===adminName).id};
+    keyInfo=null; await deriveKey(pw,toB64(crypto.getRandomValues(new Uint8Array(16))));
+    const data=await sealState(st);
+    const code=randHex(24);
+    const id=await rpc('create_trip',{p_data:data,p_admin_code:code});
+    ls.set('pw-'+id,pw); ls.set('cache-'+id,JSON.stringify(st)); rememberTrip(id,name);
+    pending={id,code,adminName,st,data};
+    $('cGroupLink').textContent=groupLink(id);
+    $('cAdminLink').textContent=adminLink(id,code);
+    $('cAdminTitle').textContent=`Lidhja e administratorit, vetëm për ${adminName}`;
+    $('cAdminNote').textContent=`Kush e ka këtë lidhje mund të ndryshojë arkën. Dërgoja vetëm ${adminName}-it, bashkë me fjalëkalimin.`;
+    $('cAmAdmin').textContent=`Unë jam ${adminName}: vazhdo si administrator`;
+    $('cNotAdmin').textContent=`Nuk jam ${adminName}: vazhdo vetëm për lexim`;
+    ['nName','nMembers','nPw','nPw2'].forEach(k=>$(k).value=''); fillAdminSelect();
+    show('created');
+  }catch(err){ showErr($('nErr'),err.offline?err.msg:'Udhëtimi nuk u krijua: '+(err.msg||'gabim i panjohur')); }
+  $('nGo').disabled=false; $('nGo').textContent='Krijo udhëtimin';
+};
+$('cAmAdmin').onclick=()=>{ ls.set('admin-'+pending.id,pending.code); enterCreated(); };
+$('cNotAdmin').onclick=()=>{ ls.del('admin-'+pending.id); enterCreated(); };
+function enterCreated(){ const p=pending; pending=null; tripId=null; location.hash='t='+p.id; }
+
+$('openForm').onsubmit=e=>{ e.preventDefault();
+  const v=$('oLink').value.trim(); const m=v.match(/[#&]t=([0-9a-f]{6,64})/i);
+  if(!m) return showErr($('oErr'),'Kjo nuk duket si lidhje udhëtimi. Ngjite të plotë, me pjesën #t=…');
+  showErr($('oErr'),''); const a=v.match(/[#&]a=([0-9a-f]{32,128})/i);
+  $('oLink').value=''; location.hash='t='+m[1]+(a?'&a='+a[1]:'');
+};
+
+/* ===== OPEN A TRIP ===== */
+function lockScreen(title,msg,fields,err){
+  $('lockTitle').textContent=title; $('lockMsg').textContent=msg; $('lockFields').hidden=!fields; showErr($('lErr'),err||''); show('lock');
+  if(fields) setTimeout(()=>$('lPw').focus(),50);
+}
+async function openTrip(id){
+  tripId=id; state=null; payload=null; serverAt=null; keyInfo=null; notice=''; sync={s:'idle'};
+  adminCode=ls.get('admin-'+id); isAdmin=false; editC=editE=null;
+  if(!CONFIGURED){ lockScreen('Pa lidhje me databazën','Aplikacioni nuk është lidhur ende me Supabase.',false); return; }
+  const cached=ls.get('cache-'+id), pw=ls.get('pw-'+id);
+  if(cached && pw){ try{ state=JSON.parse(cached); isAdmin=!!adminCode; tab=ls.get('tab-'+id)||(isAdmin?'kontribute':'llogaria'); showTrip(); viewInfo={loading:true}; render(); }catch(e){ state=null; } }
+  if(!state) lockScreen('Duke hapur…','Po ngarkohet udhëtimi.',false);
+  let row;
+  try{ row=await rpc('get_trip',{p_id:id}); }
+  catch(e){
+    if(state){ viewInfo={loading:false,err:'Pa internet. Po shikon kopjen e fundit në këtë telefon.'}; render(); return; }
+    lockScreen('Nuk u hap','Nuk u lidh me serverin. Kontrollo internetin dhe provo përsëri.',false); return;
+  }
+  if(tripId!==id) return;
+  if(!row){ lockScreen('Udhëtimi nuk u gjet','Kjo lidhje nuk i përket asnjë udhëtimi. Kontrollo që e ke kopjuar të plotë.',false); return; }
+  payload=row.data; serverAt=row.updated_at;
+  if(!pw){ state=null; lockScreen('Udhëtim i mbrojtur','Shkruaj fjalëkalimin që të dha grupi.',true); return; }
+  await unlock(pw,false);
+}
+async function unlock(pw,fromForm){
+  let st;
+  try{ st=await openState(payload,pw); }
+  catch(e){ ls.del('pw-'+tripId); state=null; lockScreen('Udhëtim i mbrojtur','Shkruaj fjalëkalimin që të dha grupi.',true,fromForm?'Fjalëkalimi nuk është i saktë.':'Fjalëkalimi i ruajtur nuk vlen më. Shkruaje përsëri.'); return false; }
+  if(fromForm){ if($('lRemember').checked) ls.set('pw-'+tripId,pw); else ls.del('pw-'+tripId); }
+  const dirty=ls.get('dirty-'+tripId)==='1';
+  if(adminCode){
+    const ok=await rpc('check_admin',{p_id:tripId,p_code:adminCode}).catch(()=>null);
+    if(ok===false){ ls.del('admin-'+tripId); ls.del('dirty-'+tripId); adminCode=null; notice='Lidhja e administratorit në këtë telefon nuk vlen më. Administrimi i kaloi dikujt tjetër.'; }
+  }
+  isAdmin=!!adminCode;
+  if(isAdmin && dirty && state){ /* keep local unsaved changes and send them */ }
+  else state=st;
+  ls.set('cache-'+tripId,JSON.stringify(state)); rememberTrip(tripId,state.name);
+  if(view!=='trip'){ tab=ls.get('tab-'+tripId)||(isAdmin?'kontribute':'llogaria'); showTrip(); }
+  viewInfo={loading:false,at:new Date(),err:''};
+  render();
+  if(isAdmin && dirty) pushNow();
+  return true;
+}
+$('lockForm').onsubmit=async e=>{ e.preventDefault();
+  const pw=$('lPw').value; if(!pw) return showErr($('lErr'),'Shkruaj fjalëkalimin.');
+  $('lGo').disabled=true; $('lGo').textContent='Duke hapur…';
+  const ok=await unlock(pw,true);
+  $('lGo').disabled=false; $('lGo').textContent='Hape'; if(ok) $('lPw').value='';
+};
+function showTrip(){ show('trip'); resetCForm(); resetEForm(); $('gNewBox').hidden=true; $('gMineBox').hidden=true; $('gTransferConfirm').hidden=true; $('forgetConfirm').hidden=true; $('xBox').hidden=true; }
+
+/* ===== REFRESH (viewers) ===== */
+async function refresh(){
+  if(view!=='trip'||!tripId||isAdmin&&(sync.s==='pending'||sync.s==='saving')) return;
+  viewInfo.loading=true; render();
+  try{
+    const row=await rpc('get_trip',{p_id:tripId});
+    if(row && row.updated_at!==serverAt){
+      payload=row.data; serverAt=row.updated_at;
+      const st=await openState(payload,keyInfo?keyInfo.pw:ls.get('pw-'+tripId));
+      if(!(isAdmin&&ls.get('dirty-'+tripId)==='1')){ state=st; ls.set('cache-'+tripId,JSON.stringify(state)); }
+      if(isAdmin){ const ok=await rpc('check_admin',{p_id:tripId,p_code:adminCode}).catch(()=>null); if(ok===false) loseAdmin('Administrimi i kaloi dikujt tjetër. Ky telefon e sheh arkën vetëm për lexim.'); }
+    }
+    viewInfo={loading:false,at:new Date(),err:''};
+  }catch(e){ viewInfo={loading:false,at:viewInfo.at,err:e.offline?'pa internet':'nuk u rifreskua dot'}; }
+  render();
+}
+setInterval(()=>{ if(document.visibilityState==='visible' && view==='trip' && !isAdmin) refresh(); },60000);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && view==='trip' && (!viewInfo.at || Date.now()-viewInfo.at>20000)) refresh(); });
+
+/* ===== SAVE (admin) ===== */
+let pushTimer=null, pushing=false, again=false;
+function touch(){
+  if(!isAdmin) return;
+  ls.set('cache-'+tripId,JSON.stringify(state)); ls.set('dirty-'+tripId,'1'); rememberTrip(tripId,state.name);
+  sync={s:'pending'}; render(); clearTimeout(pushTimer); pushTimer=setTimeout(pushNow,1500);
+}
+async function pushNow(){
+  clearTimeout(pushTimer);
+  if(pushing){ again=true; return; }
+  if(!isAdmin) return;
+  pushing=true; sync={s:'saving'}; render();
+  try{
+    const data=await sealState(state);
+    serverAt=await rpc('update_trip',{p_id:tripId,p_code:adminCode,p_data:data}); payload=data;
+    ls.del('dirty-'+tripId); sync={s:'ok'};
+  }catch(e){
+    if(isNotAdmin(e)) loseAdmin('Nuk je më administrator i këtij udhëtimi. Ndryshimi i fundit nuk u ruajt.');
+    else sync={s:'error',msg:e.offline?'Pa internet. Ndryshimet ruhen këtu dhe dërgohen kur të provosh përsëri.':'Ruajtja dështoi. Provo përsëri.'};
+  }
+  pushing=false; render();
+  if(again){ again=false; pushNow(); }
+}
+function loseAdmin(msg){ ls.del('admin-'+tripId); ls.del('dirty-'+tripId); adminCode=null; isAdmin=false; sync={s:'idle'}; notice=msg; tab='llogaria'; refresh(); }
+window.addEventListener('beforeunload',e=>{ if(isAdmin&&(sync.s==='pending'||sync.s==='saving')){ e.preventDefault(); e.returnValue=''; } });
+
+/* ===== FORMAT ===== */
 function money(c){
   const neg=c<0; c=Math.abs(c);
   const s=(Math.floor(c/100)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+','+String(c%100).padStart(2,'0');
@@ -352,24 +693,33 @@ function parseMoney(str){
   return Math.round(parseFloat(str)*100);
 }
 const nameOf=id=>id==='pool'?'Arka':(state.members.find(m=>m.id===id)||{name:'(i fshirë)'}).name;
-const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 function fmtDate(d){ if(!d) return ''; const [dt,tm]=d.split('T'); const [y,m,da]=dt.split('-'); return `${da}.${m}.${y}`+(tm?` ${tm.slice(0,5)}`:''); }
 function nowLocal(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); }
-function showErr(el,msg){ el.textContent=msg; el.hidden=!msg; }
+const hhmm=d=>d?new Date(d).toLocaleTimeString('sq-AL',{hour:'2-digit',minute:'2-digit',hour12:false}):'';
 
-function touch(){ if(state.sample){ state.sample=false; if(state.name.startsWith('Shembull: ')) state.name=state.name.slice(10);} save(); render(); }
-
-/* ===== RENDER ===== */
+/* ===== RENDER TRIP ===== */
 function render(){
+  if(view!=='trip'||!state) return;
+  document.body.classList.toggle('ro',!isAdmin);
   const s=computeSettlement(state);
   $('tripName').textContent=state.name||'Udhëtimi';
   $('poolBal').textContent=money(s.poolCash);
   $('stats').innerHTML=`<span>Futur: <b class="num">${money(s.poolIn)}</b></span><span>Shpenzuar nga arka: <b class="num">${money(s.poolOut)}</b></span><span>Anëtarë: <b>${state.members.length}</b></span>`;
+
   let b='';
-  if(state.sample) b+=`<div class="banner sample"><span>Këto janë të dhëna shembull. Ndrysho çfarëdo, ose fillo bosh.</span><button class="btn tiny" type="button" id="startEmpty">Fillo udhëtim të ri</button></div>`;
+  if(notice) b+=`<div class="banner warn"><span>${esc(notice)}</span><button class="btn tiny" type="button" id="noticeX">OK</button></div>`;
+  if(isAdmin){
+    const cls=sync.s==='ok'?'ok':sync.s==='error'?'bad':sync.s==='idle'?'ok':'busy';
+    const txt={idle:'Administrator: ndryshimet i sheh i gjithë grupi',pending:'Ndryshime të paruajtura…',saving:'Duke ruajtur…',ok:'Ruajtur. I gjithë grupi e sheh.',error:sync.msg||'Ruajtja dështoi'}[sync.s];
+    b+=`<div class="banner ${sync.s==='error'?'bad':'sync'}"><span><span class="dot ${cls}"></span>${esc(txt)}</span>${sync.s==='error'?'<button class="btn tiny" type="button" id="retrySync">Provo përsëri</button>':''}</div>`;
+  } else {
+    b+=`<div class="banner info"><span>Vetëm për lexim${viewInfo.loading?' · duke rifreskuar…':viewInfo.at?' · përditësuar '+hhmm(viewInfo.at):''}${viewInfo.err?' · '+esc(viewInfo.err):''}</span><button class="btn tiny" type="button" id="refreshBtn">Rifresko</button></div>`;
+  }
   if(s.poolCash<0) b+=`<div class="banner warn">Arka ka shpenzuar ${money(-s.poolCash)} më shumë se sa është futur. Ndoshta mungon një kontribut.</div>`;
   $('banners').innerHTML=b;
-  if(state.sample) $('startEmpty').onclick=()=>{ state=emptyState(); save(); tab='grupi'; render(); };
+  if($('noticeX')) $('noticeX').onclick=()=>{ notice=''; render(); };
+  if($('retrySync')) $('retrySync').onclick=()=>pushNow();
+  if($('refreshBtn')) $('refreshBtn').onclick=()=>refresh();
 
   document.querySelectorAll('.tabs button').forEach(bt=>bt.setAttribute('aria-selected',bt.dataset.tab===tab));
   ['kontribute','shpenzime','llogaria','grupi'].forEach(t=>$('p-'+t).hidden=t!==tab);
@@ -380,60 +730,74 @@ function render(){
   if(!$('eCat').options.length) $('eCat').innerHTML=CATS.map(c=>`<option>${c}</option>`).join('');
   if(!$('cDate').value) $('cDate').value=nowLocal();
   if(!$('eDate').value) $('eDate').value=nowLocal().slice(0,10);
-  if(!editE) renderParts();
+  if(!editE && isAdmin && memberSig()!==partsSig) renderParts();
 
   const cs=[...state.contributions].sort((a,b)=>b.date.localeCompare(a.date));
-  $('cList').innerHTML=cs.length?cs.map(c=>`<li><span class="main"><b>${esc(nameOf(c.memberId))}</b>${c.note?` <span class="muted">· ${esc(c.note)}</span>`:''}</span><span class="amt num">${money(c.amount)}</span><span class="meta"><span class="muted small">${fmtDate(c.date)}</span><span class="btns"><button class="btn tiny" data-ec="${c.id}">Ndrysho</button><button class="btn tiny danger" data-dc="${c.id}">Fshi</button></span></span></li>`).join(''):`<p class="empty">Ende asnjë kontribut. Shto të parin më sipër.</p>`;
+  $('cList').innerHTML=cs.length?cs.map(c=>`<li><span class="main"><b>${esc(nameOf(c.memberId))}</b>${c.note?` <span class="muted">· ${esc(c.note)}</span>`:''}</span><span class="amt num">${money(c.amount)}</span><span class="meta"><span class="muted small">${fmtDate(c.date)}</span>${isAdmin?`<span class="btns"><button class="btn tiny" data-ec="${c.id}">Ndrysho</button><button class="btn tiny danger" data-dc="${c.id}">Fshi</button></span>`:''}</span></li>`).join(''):`<p class="empty">${isAdmin?'Ende asnjë kontribut. Shto të parin më sipër.':'Ende asnjë kontribut.'}</p>`;
 
   const es=[...state.expenses].sort((a,b)=>b.date.localeCompare(a.date));
   $('eList').innerHTML=es.length?es.map(e=>{
     const p=Object.entries(e.shares).filter(([,w])=>w>0);
     const allEq=p.length===state.members.length && p.every(([,w])=>w===p[0][1]);
     const who=allEq?'të gjithë':p.map(([id,w])=>esc(nameOf(id))+(p.some(([,x])=>x!==p[0][1])?` ×${w}`:'')).join(', ');
-    return `<li><span class="main"><b>${esc(e.desc||e.category)}</b><br><span class="small muted">${who}</span></span><span class="amt num">${money(e.amount)}</span><span class="meta"><span class="small muted"><span class="chip ${e.paidBy==='pool'?'':'oop'}">${e.paidBy==='pool'?'Arka':esc(nameOf(e.paidBy))}</span> ${esc(e.category)} · ${fmtDate(e.date)}</span><span class="btns"><button class="btn tiny" data-ee="${e.id}">Ndrysho</button><button class="btn tiny danger" data-de="${e.id}">Fshi</button></span></span></li>`;}).join(''):`<p class="empty">Ende asnjë shpenzim.</p>`;
+    return `<li><span class="main"><b>${esc(e.desc||e.category)}</b><br><span class="small muted">${who}</span></span><span class="amt num">${money(e.amount)}</span><span class="meta"><span class="small muted"><span class="chip ${e.paidBy==='pool'?'':'oop'}">${e.paidBy==='pool'?'Arka':esc(nameOf(e.paidBy))}</span> ${esc(e.category)} · ${fmtDate(e.date)}</span>${isAdmin?`<span class="btns"><button class="btn tiny" data-ee="${e.id}">Ndrysho</button><button class="btn tiny danger" data-de="${e.id}">Fshi</button></span>`:''}</span></li>`;}).join(''):`<p class="empty">Ende asnjë shpenzim.</p>`;
 
   const tot={c:0,f:0};
   $('sBody').innerHTML=s.rows.map(r=>{tot.c+=r.contributed;tot.f+=r.fair;
     const cls=r.balance>0?'pos':r.balance<0?'neg':'zero';
-    return `<tr><td>${esc(nameOf(r.id))}</td><td class="num">${money(r.contributed)}</td><td class="num">${money(r.fair)}</td><td><span class="pill ${cls}">${r.balance>0?'+':''}${money(r.balance)}</span></td></tr>`;}).join('')||`<tr><td colspan="4" class="muted">Shto anëtarë te skeda Grupi.</td></tr>`;
+    return `<tr><td>${esc(nameOf(r.id))}</td><td class="num">${money(r.contributed)}</td><td class="num">${money(r.fair)}</td><td><span class="pill ${cls}">${r.balance>0?'+':''}${money(r.balance)}</span></td></tr>`;}).join('')||`<tr><td colspan="4" class="muted">Ende asnjë anëtar.</td></tr>`;
   $('sFoot').innerHTML=`<tr><td>Gjithsej</td><td class="num">${money(tot.c)}</td><td class="num">${money(tot.f)}</td><td class="num">${money(tot.c-tot.f)}</td></tr>`;
   $('sTransfers').innerHTML=s.transfers.length?s.transfers.map(t=>`<li><span class="from">${esc(nameOf(t.from))}</span><span class="arrow">→</span><span class="to">${esc(nameOf(t.to))}</span><span class="num" style="font-weight:700">${money(t.amount)}</span></li>`).join(''):`<p class="empty">Të gjithë janë në rregull. S'ka asgjë për të shlyer.</p>`;
 
-  $('gName').value=state.name; $('gCur').value=state.currency;
+  // Grupi
+  $('gGroupLink').textContent=groupLink(tripId);
+  const adm=state.members.find(m=>m.id===state.adminMemberId);
+  $('gAdminName').innerHTML=adm?`Administrator është <b>${esc(adm.name)}</b>.${isAdmin?' <span class="chip adm">Ky telefon</span>':''}`:'Administrator është ai që ka lidhjen e administratorit.';
+  $('gViewerNote').hidden=isAdmin;
+  const keepN=$('gNewAdmin').value;
+  $('gNewAdmin').innerHTML=state.members.filter(m=>m.id!==state.adminMemberId).map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('');
+  if(keepN) $('gNewAdmin').value=keepN;
+  $('gTransfer').disabled=!$('gNewAdmin').options.length;
+  if(document.activeElement!==$('gName')) $('gName').value=state.name;
+  if(document.activeElement!==$('gCur')) $('gCur').value=state.currency;
+  $('gName').disabled=$('gCur').disabled=!isAdmin;
   const used=new Set([...state.contributions.map(c=>c.memberId),...state.expenses.map(e=>e.paidBy),...state.expenses.flatMap(e=>Object.keys(e.shares).filter(k=>e.shares[k]>0))]);
-  $('mList').innerHTML=state.members.map(m=>`<div class="member"><input value="${esc(m.name)}" data-rn="${m.id}" id="rn-${m.id}" aria-label="Emri"><button class="btn tiny danger" data-dm="${m.id}" ${used.has(m.id)?'disabled title="Ka veprime të regjistruara"':''}>Hiq</button></div>`).join('')||`<p class="empty">Shto anëtarin e parë.</p>`;
+  if(!$('mList').contains(document.activeElement)) $('mList').innerHTML=!isAdmin
+    ? state.members.map(m=>`<div class="mname">${esc(m.name)}${m.id===state.adminMemberId?' <span class="chip adm">Admin</span>':''}</div>`).join('')
+    : state.members.map(m=>`<div class="member"><input value="${esc(m.name)}" data-rn="${m.id}" id="rn-${m.id}" aria-label="Emri i ${esc(m.name)}"><button class="btn tiny danger" data-dm="${m.id}" ${used.has(m.id)||m.id===state.adminMemberId?'disabled title="Ka veprime të regjistruara ose është administrator"':''}>Hiq</button></div>`).join('');
 }
 
+let partsSig='';
+const memberSig=()=>state.members.map(m=>m.id+':'+m.name).join('|');
 function renderParts(shares){
+  partsSig=memberSig();
   const cur=shares||{};
   $('eParts').innerHTML=state.members.map(m=>{
     const w=shares?(cur[m.id]||0):1;
-    return `<div class="part"><input type="checkbox" id="pc-${m.id}" ${w>0?'checked':''}><label for="pc-${m.id}" class="nm" style="font-size:.95rem;color:var(--ink);font-weight:400;letter-spacing:0">${esc(m.name)}</label><input type="number" min="0" step="0.5" id="pw-${m.id}" value="${w>0?w:1}" aria-label="Pesha për ${esc(m.name)}"></div>`;}).join('')||`<p class="empty">Shto anëtarë te skeda Grupi.</p>`;
+    return `<div class="part"><input type="checkbox" id="pc-${m.id}" ${w>0?'checked':''}><label for="pc-${m.id}" class="nm">${esc(m.name)}</label><input type="number" min="0" step="0.5" id="pw-${m.id}" value="${w>0?w:1}" aria-label="Pesha për ${esc(m.name)}"></div>`;}).join('');
 }
 
-/* ===== EVENTS ===== */
-document.querySelector('.tabs').onclick=e=>{const t=e.target.closest('button'); if(!t) return; tab=t.dataset.tab; try{localStorage.setItem(KEY+'-tab',tab);}catch(_){} render();};
+/* ===== TRIP EVENTS ===== */
+document.querySelector('.tabs').onclick=e=>{const t=e.target.closest('button'); if(!t) return; tab=t.dataset.tab; ls.set('tab-'+tripId,tab); render();};
 
-$('cForm').onsubmit=e=>{e.preventDefault();
+$('cForm').onsubmit=e=>{e.preventDefault(); if(!isAdmin) return;
   const amt=parseMoney($('cAmount').value);
-  if(!state.members.length) return showErr($('cErr'),'Shto fillimisht anëtarë te skeda Grupi.');
   if(!(amt>0)) return showErr($('cErr'),'Shkruaj një shumë më të madhe se zero, p.sh. 25 ose 25,50.');
   showErr($('cErr'),'');
   const rec={memberId:$('cMember').value,amount:amt,date:$('cDate').value||nowLocal(),note:$('cNote').value.trim()};
   if(editC){ Object.assign(state.contributions.find(c=>c.id===editC),rec); } else state.contributions.push({id:uid(),...rec});
   resetCForm(); touch();
 };
-function resetCForm(){ editC=null; $('cAmount').value=''; $('cNote').value=''; $('cDate').value=nowLocal(); $('cTitle').textContent='Shto kontribut në arkë'; $('cSubmit').textContent='Shto kontributin'; $('cCancel').hidden=true; }
+function resetCForm(){ editC=null; $('cAmount').value=''; $('cNote').value=''; $('cDate').value=nowLocal(); $('cTitle').textContent='Shto kontribut në arkë'; $('cSubmit').textContent='Shto kontributin'; $('cCancel').hidden=true; showErr($('cErr'),''); }
 $('cCancel').onclick=()=>{resetCForm(); render();};
-$('cList').onclick=e=>{
+$('cList').onclick=e=>{ if(!isAdmin) return;
   const d=e.target.dataset;
   if(d.dc){ state.contributions=state.contributions.filter(c=>c.id!==d.dc); touch(); }
   if(d.ec){ const c=state.contributions.find(x=>x.id===d.ec); editC=c.id; $('cMember').value=c.memberId; $('cAmount').value=(c.amount/100).toFixed(2).replace('.',','); $('cDate').value=c.date; $('cNote').value=c.note||''; $('cTitle').textContent='Ndrysho kontributin'; $('cSubmit').textContent='Ruaj ndryshimet'; $('cCancel').hidden=false; $('cForm').scrollIntoView({behavior:'smooth'}); }
 };
 
-$('eForm').onsubmit=e=>{e.preventDefault();
+$('eForm').onsubmit=e=>{e.preventDefault(); if(!isAdmin) return;
   const amt=parseMoney($('eAmount').value);
-  if(!state.members.length) return showErr($('eErr'),'Shto fillimisht anëtarë te skeda Grupi.');
   if(!(amt>0)) return showErr($('eErr'),'Shkruaj një shumë më të madhe se zero.');
   const shares={};
   for(const m of state.members){ if($('pc-'+m.id)?.checked){ const w=parseFloat($('pw-'+m.id).value); if(w>0) shares[m.id]=w; } }
@@ -443,102 +807,84 @@ $('eForm').onsubmit=e=>{e.preventDefault();
   if(editE) Object.assign(state.expenses.find(x=>x.id===editE),rec); else state.expenses.push({id:uid(),...rec});
   resetEForm(); touch();
 };
-function resetEForm(){ editE=null; if(typeof clearScan==='function') clearScan(); $('eAmount').value=''; $('eDesc').value=''; $('ePaid').value='pool'; $('eTitle').textContent='Shto shpenzim'; $('eSubmit').textContent='Shto shpenzimin'; $('eCancel').hidden=true; renderParts(); }
+function resetEForm(){ editE=null; $('eAmount').value=''; $('eDesc').value=''; $('ePaid').value='pool'; $('eTitle').textContent='Shto shpenzim'; $('eSubmit').textContent='Shto shpenzimin'; $('eCancel').hidden=true; showErr($('eErr'),''); if(state) renderParts(); }
 $('eCancel').onclick=()=>{resetEForm(); render();};
-$('eList').onclick=e=>{
+$('eList').onclick=e=>{ if(!isAdmin) return;
   const d=e.target.dataset;
   if(d.de){ state.expenses=state.expenses.filter(x=>x.id!==d.de); touch(); }
   if(d.ee){ const x=state.expenses.find(y=>y.id===d.ee); editE=x.id; $('eDesc').value=x.desc; $('eAmount').value=(x.amount/100).toFixed(2).replace('.',','); $('eCat').value=x.category; $('eDate').value=x.date; $('ePaid').value=x.paidBy; renderParts(x.shares); $('eTitle').textContent='Ndrysho shpenzimin'; $('eSubmit').textContent='Ruaj ndryshimet'; $('eCancel').hidden=false; $('eForm').scrollIntoView({behavior:'smooth'}); }
 };
 
-$('mForm').onsubmit=e=>{e.preventDefault();
+$('mForm').onsubmit=e=>{e.preventDefault(); if(!isAdmin) return;
   const n=$('mName').value.trim();
   if(!n) return showErr($('mErr'),'Shkruaj një emër.');
   if(state.members.some(m=>m.name.toLowerCase()===n.toLowerCase())) return showErr($('mErr'),'Ky emër ekziston. Shto mbiemrin ose një iniciale.');
   showErr($('mErr'),''); state.members.push({id:uid(),name:n}); $('mName').value=''; if(!editE) renderParts(); touch();
 };
-$('mList').onclick=e=>{ const id=e.target.dataset.dm; if(id){ state.members=state.members.filter(m=>m.id!==id); touch(); } };
-$('mList').onchange=e=>{ const id=e.target.dataset.rn; if(id){ const v=e.target.value.trim(); if(v){ state.members.find(m=>m.id===id).name=v; touch(); } else render(); } };
-$('gName').onchange=()=>{ state.name=$('gName').value.trim()||'Udhëtimi'; touch(); };
-$('gCur').onchange=()=>{ state.currency=$('gCur').value.trim(); touch(); };
+$('mList').onclick=e=>{ if(!isAdmin) return; const id=e.target.dataset.dm; if(id){ state.members=state.members.filter(m=>m.id!==id); touch(); } };
+$('mList').onchange=e=>{ if(!isAdmin) return; const id=e.target.dataset.rn; if(id){ const v=e.target.value.trim(); if(v){ state.members.find(m=>m.id===id).name=v; touch(); } else render(); } };
+$('gName').onchange=()=>{ if(!isAdmin) return; state.name=$('gName').value.trim()||'Udhëtimi'; touch(); };
+$('gCur').onchange=()=>{ if(!isAdmin) return; state.currency=$('gCur').value.trim(); touch(); };
 
-$('xShow').onclick=()=>{ $('xBox').hidden=false; $('xExportBtns').hidden=false; $('xImportBtns').hidden=true; $('xText').value=JSON.stringify(state,null,1); showErr($('xErr'),''); };
-$('xImportShow').onclick=()=>{ $('xBox').hidden=false; $('xExportBtns').hidden=true; $('xImportBtns').hidden=false; $('xText').value=''; $('xText').placeholder='Ngjit këtu tekstin e kopjuar më parë'; showErr($('xErr'),''); };
-$('xCopy').onclick=()=>{ const t=$('xText'); const ok=()=>{$('xCopy').textContent='U kopjua';setTimeout(()=>$('xCopy').textContent='Kopjo',1500);};
-  try{ navigator.clipboard.writeText(t.value).then(ok,()=>{t.select();$('xCopy').textContent='Zgjidhet, kopjoje me dorë';}); }catch(_){ t.select(); } };
-function importText(txt){
-  try{ const d=JSON.parse(txt); if(!Array.isArray(d.members)||!Array.isArray(d.contributions)||!Array.isArray(d.expenses)) throw 0;
-    state=d; state.sample=false; save(); $('xBox').hidden=true; tab='llogaria'; render(); }
+/* admin: my link + transfer */
+$('gShowMine').onclick=()=>{ $('gMineLink').textContent=adminLink(tripId,adminCode); $('gMineBox').hidden=!$('gMineBox').hidden; };
+$('gTransfer').onclick=()=>{ const id=$('gNewAdmin').value; if(!id) return;
+  $('gTransferText').textContent=`${nameOf(id)} do të bëhet administrator. Ky telefon do ta shohë arkën vetëm për lexim, dhe lidhja jote e administratorit nuk do të vlejë më.`;
+  $('gTransferConfirm').hidden=false; };
+$('gTransferNo').onclick=()=>{ $('gTransferConfirm').hidden=true; };
+$('gTransferYes').onclick=async()=>{
+  const newId=$('gNewAdmin').value; if(!newId||!isAdmin) return;
+  $('gTransferYes').disabled=true; showErr($('gErr'),'');
+  const oldAdminId=state.adminMemberId, newCode=randHex(24);
+  try{
+    clearTimeout(pushTimer);
+    state.adminMemberId=newId;
+    const data=await sealState(state);
+    serverAt=await rpc('update_trip',{p_id:tripId,p_code:adminCode,p_data:data}); payload=data;
+    await rpc('change_admin',{p_id:tripId,p_code:adminCode,p_new_code:newCode});
+    ls.del('admin-'+tripId); ls.del('dirty-'+tripId); ls.set('cache-'+tripId,JSON.stringify(state));
+    adminCode=null; isAdmin=false; sync={s:'idle'}; tab='grupi';
+    $('gTransferConfirm').hidden=true; $('gMineBox').hidden=true;
+    $('gNewTitle').textContent=`Lidhja e re e administratorit, dërgoja ${nameOf(newId)}-it`;
+    $('gNewLink').textContent=adminLink(tripId,newCode); $('gNewBox').hidden=false;
+    render();
+  }catch(e){
+    state.adminMemberId=oldAdminId;
+    showErr($('gErr'),isNotAdmin(e)?'Nuk je më administrator i këtij udhëtimi.':e.offline?'Pa internet. Provo përsëri kur të kesh lidhje.':'Nuk u krye. Provo përsëri.');
+    render();
+  }
+  $('gTransferYes').disabled=false;
+};
+
+/* backup */
+$('xShow').onclick=()=>{ $('xBox').hidden=false; $('xExportBtns').hidden=false; $('xImportBtns').hidden=true; $('xText').readOnly=true; $('xText').value=JSON.stringify(state,null,1); showErr($('xErr'),''); };
+$('xImportShow').onclick=()=>{ $('xBox').hidden=false; $('xExportBtns').hidden=true; $('xImportBtns').hidden=false; $('xText').readOnly=false; $('xText').value=''; $('xText').placeholder='Ngjit këtu tekstin e kopjuar më parë'; showErr($('xErr'),''); };
+$('xLoad').onclick=()=>{ if(!isAdmin) return;
+  try{ const d=JSON.parse($('xText').value); if(!Array.isArray(d.members)||!Array.isArray(d.contributions)||!Array.isArray(d.expenses)) throw 0;
+    d.adminMemberId=d.members.some(m=>m.id===state.adminMemberId)?state.adminMemberId:(d.adminMemberId||null);
+    state=d; $('xBox').hidden=true; tab='llogaria'; touch(); }
   catch(_){ showErr($('xErr'),'Ky tekst nuk duket si kopje e këtij aplikacioni. Kopjoje të plotë, nga { deri te }.'); }
-}
-$('xLoad').onclick=()=>importText($('xText').value);
-$('xFile').onchange=e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>importText(r.result); r.readAsText(f); };
-
-/* ===== RECEIPT SCAN ===== */
-let sampleFn=null, scanCtl=null, scanUrl=null;
-function clearFilled(){ document.querySelectorAll('.filled').forEach(el=>el.classList.remove('filled')); }
-function clearScan(){ scanCtl?.abort(); clearFilled(); $('scanRes').hidden=true; if(scanUrl){URL.revokeObjectURL(scanUrl);scanUrl=null;} }
-function setScanMsg(html,cls){ const m=$('scanMsg'); m.className='scanmsg'+(cls?' '+cls:''); m.innerHTML=html; }
-function setBusy(b){ $('scanLabel').setAttribute('aria-disabled',b); $('scanStop').hidden=!b; $('scanFile').disabled=b; }
-const SCAN_ERR={
-  rate_limited:'Shumë kërkesa njëra pas tjetrës. Prit pak dhe provo përsëri.',
-  image_rejected:'Kjo foto nuk mund të lexohet. Provo një foto tjetër (JPG ose PNG).',
-  refused:'Fatura nuk u lexua dot. Shkruaje shumën me dorë.',
-  empty_completion:'Nuk u gjet asgjë në foto. Provo një foto më të qartë.',
-  invalid_json:'Leximi doli i paqartë. Provo përsëri ose shkruaje shumën me dorë.',
-  session_expired:'Duhet të hysh përsëri në llogari për të lexuar fatura.',
 };
-const HIDE_CODES=['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed','images_unavailable'];
 
-(async()=>{
-  try{
-    const s=await window.claude?.use?.('sample'); if(!s) return;
-    const lim=await s.limits().catch(()=>null); if(!lim?.images) return;
-    sampleFn=s; $('scanBox').hidden=false;
-  }catch(_){}
-})();
+/* forget on this device */
+$('forgetBtn').onclick=()=>{ $('forgetText').textContent=isAdmin?'Ky telefon do të humbasë të drejtat e administratorit. Ruaje më parë lidhjen tënde të administratorit, ose nuk do të mund të ndryshosh më.':'Do të duhet ta hapësh përsëri me lidhjen dhe fjalëkalimin.'; $('forgetConfirm').hidden=false; };
+$('forgetNo').onclick=()=>{ $('forgetConfirm').hidden=true; };
+$('forgetYes').onclick=()=>{ forgetTrip(tripId); tripId=null; state=null; location.hash=''; };
 
-$('scanStop').onclick=()=>scanCtl?.abort();
-$('scanFile').onchange=async e=>{
-  const f=e.target.files[0]; e.target.value=''; if(!f||!sampleFn) return;
-  clearScan();
-  scanUrl=URL.createObjectURL(f); $('scanImg').src=scanUrl; $('scanRes').hidden=false;
-  setScanMsg('Duke lexuar faturën…'); setBusy(true);
-  scanCtl=new AbortController();
-  const prompt=`The image is a photo of a shop/restaurant/hotel/fuel receipt, possibly in Albanian (words like "TOTAL", "Totali", "Shuma", "Për t'u paguar", "LEK", "ALL", "TVSH" = VAT) or another language.
-Find the FINAL amount paid (grand total including VAT and service; not a subtotal, VAT line, cash tendered, or change).
-Reply with only this JSON object:
-{"total": number or null, "currency": "ISO code like ALL, EUR, USD" or null, "merchant": "short shop name" or null, "date": "YYYY-MM-DD" or null, "category": one of ${JSON.stringify(CATS)} or null, "confidence": "high" | "low"}
-Use a dot as the decimal separator in "total" (e.g. 1250.5). If the image is not a receipt or the total is unreadable, set "total" to null.
-Example: {"total": 2450, "currency": "ALL", "merchant": "Restorant Mangalemi", "date": "2026-10-03", "category": "Ushqim", "confidence": "high"}`;
-  try{
-    const r=await sampleFn.json(prompt,{images:f,signal:scanCtl.signal});
-    const total=Number(r?.total);
-    if(!(total>0)){ setScanMsg('Nuk u gjet totali në këtë foto. Provo një foto më të qartë ose shkruaje me dorë.','bad'); return; }
-    const cents=Math.round(total*100);
-    $('eAmount').value=(cents/100).toFixed(2).replace('.',','); $('eAmount').classList.add('filled');
-    if(r.merchant && !$('eDesc').value.trim()){ $('eDesc').value=String(r.merchant).slice(0,80); $('eDesc').classList.add('filled'); }
-    if(r.date && /^\d{4}-\d{2}-\d{2}$/.test(r.date)){ $('eDate').value=r.date; $('eDate').classList.add('filled'); }
-    if(r.category && CATS.includes(r.category)){ $('eCat').value=r.category; $('eCat').classList.add('filled'); }
-    let notes='';
-    const cur=String(r.currency||'').toUpperCase(), trip=String(state.currency||'').trim().toUpperCase();
-    const same={'€':'EUR','EUR':'EUR','LEK':'ALL','L':'ALL','ALL':'ALL','$':'USD','USD':'USD'};
-    if(cur && trip && (same[trip]||trip)!==(same[cur]||cur)) notes+=`<span class="note">Fatura është në ${esc(cur)}, por udhëtimi në ${esc(state.currency)}. Ktheje shumën në ${esc(state.currency)} para se ta shtosh.</span>`;
-    if(r.confidence==='low') notes+=`<span class="note">Fatura nuk lexohej mirë. Kontrolloje shumën me kujdes.</span>`;
-    setScanMsg(`Totali: <b class="num">${esc((cents/100).toFixed(2).replace('.',','))}${cur?' '+esc(cur):''}</b>. Kontrollo fushat e theksuara, pastaj shtyp <b>Shto shpenzimin</b>.${notes}`,'ok');
-  }catch(err){
-    if(err?.code==='cancelled'){ $('scanRes').hidden=true; return; }
-    if(HIDE_CODES.includes(err?.code)){ $('scanBox').hidden=true; showErr($('eErr'), err.code==='not_granted'?'Leximi i faturave nuk u lejua. Shkruaje shumën me dorë.':''); return; }
-    setScanMsg(SCAN_ERR[err?.code]||'Lidhja u ndërpre. Provo përsëri.','bad');
-  }finally{ setBusy(false); }
-};
-['eAmount','eDesc','eDate','eCat'].forEach(id=>$(id).addEventListener('input',()=>$(id).classList.remove('filled')));
+/* copy & share */
+document.addEventListener('click',e=>{
+  const c=e.target.closest('[data-copy]'), s=e.target.closest('[data-share]');
+  if(c){ const el=$(c.dataset.copy), text=el.value!==undefined&&el.tagName==='TEXTAREA'?el.value:el.textContent;
+    const done=()=>{ const o=c.textContent; c.textContent='U kopjua'; setTimeout(()=>c.textContent=o,1500); };
+    const fallback=()=>{ const r=document.createRange(); r.selectNodeContents(el); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); c.textContent='Zgjidhet, kopjoje'; };
+    try{ navigator.clipboard.writeText(text).then(done,fallback); }catch(_){ fallback(); } }
+  if(s){ const text=$(s.dataset.share).textContent;
+    if(navigator.share) navigator.share({title:'Arka e Udhëtimit',text:'Arka e udhëtimit tonë:',url:text}).catch(()=>{});
+    else { try{ navigator.clipboard.writeText(text); s.textContent='U kopjua'; setTimeout(()=>s.textContent='Dërgo…',1500); }catch(_){} } }
+});
+document.querySelectorAll('[data-share]').forEach(b=>{ if(!navigator.share) b.hidden=true; });
 
-$('resetBtn').onclick=()=>{ $('resetConfirm').hidden=false; };
-$('resetNo').onclick=()=>{ $('resetConfirm').hidden=true; };
-$('resetYes').onclick=()=>{ state=emptyState(); save(); $('resetConfirm').hidden=true; resetCForm(); resetEForm(); render(); };
-
-render();
+route();
 </script>
 
 </body>
