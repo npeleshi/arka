@@ -75,6 +75,7 @@ p{margin:0}
 label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:700;color:var(--muted);letter-spacing:.02em;min-width:0}
 input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
 textarea{min-height:110px;resize:vertical}
+textarea::placeholder{font-style:italic;opacity:.7}
 textarea.code{font-family:var(--f-num);font-size:.8rem;min-height:120px}
 input:disabled{opacity:.8}
 input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -178,7 +179,7 @@ tfoot td{font-weight:700;border-bottom:0}
         <label>Monedha<input id="nCur" value="€" maxlength="4"></label>
       </div>
       <label>Anëtarët, një emër për rresht
-        <textarea id="nMembers" placeholder="Arben&#10;Blerta&#10;Klodi"></textarea>
+        <textarea id="nMembers" placeholder="Shkruaj emrat këtu, p.sh.placeholder="Arben&#10;Blerta&#10;Klodi"#10;Arbenplaceholder="Arben&#10;Blerta&#10;Klodi"#10;Blerta"></textarea>
       </label>
       <label>Administratori
         <select id="nAdmin"><option value="">Shkruaj fillimisht anëtarët</option></select>
